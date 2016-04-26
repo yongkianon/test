@@ -1,0 +1,284 @@
+
+Ubuntu network bond and Linux Cluster IP failover
+Hadoop 2
+Hadoop Cluster with NameNode failover
+Hadoop YARN with example word count
+Ubuntu NFS to centralize ALL logging file
+Add DataNode/Remove DataNode
+OS tuning, ulimit nofile, nproc
+JVM memory tuning
+
+
+Windows SSH client access with password-less
+more /etc/profile
+more /etc/hosts
+more /etc/hostname
+ifconfig -a
+ls -la /home/hadoop/etc/hadoop/
+
+
+
+static IP
+
+vi /etc/network/interfaces
+auto eth0
+iface eth0 inet static
+address 192.168.1.201
+netmask 255.255.255.0
+gateway 192.168.1.1
+dns-nameservers 8.8.8.8 8.8.4.4
+
+auto eth1
+iface eth1 inet dhcp
+
+
+bond0
+
+
+ubuntu repo server setup
+https://www.packtpub.com/books/content/create-local-ubuntu-repository-using-apt-mirror-and-apt-cacher
+
+
+
+
+ssh-keygen  -t rsa
+ssh-copy-id -i ~/.ssh/id_rsa.pub  hadoop@master
+    scp -rp    ~/.ssh/id_rsa.pub  ubuntu@192.168.1.108:~/.ssh/authorized_keys
+
+
+
+Setup JDK in /opt
+tar -zxvf server-jre-8uXX-linux-x64.tar.gz
+ln -s jdk1.8.0_XX jdk1.8.0
+chown -R root:root /opt
+
+
+Setup HDP
+wget http://public-repo-1.hortonworks.com/HDP/ubuntu14/2.x/updates/2.4.0.0/hdp.list -O /etc/apt/sources.list.d/hdp.list
+apt update
+apt upgrade
+apt install ntp selinux-utils
+apt install hadoop hadoop-hdfs libhdfs0 hadoop-yarn hadoop-mapreduce hadoop-client openssl
+
+
+vi /etc/profile
+export JAVA_HOME=/opt/jdk1.8.0
+export PATH=$JAVA_HOME/bin:$PATH
+
+
+vi /etc/hosts
+192.168.1.201  nn1        nn1.alltrix.biz
+192.168.1.202  nn2        nn2.alltrix.biz
+192.168.1.211  dn1        dn1.alltrix.biz
+192.168.1.212  dn2        dn2.alltrix.biz
+
+192.168.1.200  master  master.alltrix.biz
+192.168.1.210  slave    slave.alltrix.biz
+
+
+
+
+
+export JAVA_HOME=/opt/jdk1.8.0
+
+export HADOOP_HOME=/home/hadoop
+
+export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
+export HADOOP_COMMON_HOME=$HADOOP_HOME
+
+export HADOOP_HDFS_HOME=$HADOOP_HOME
+export HADOOP_MAPRED_HOME=$HADOOP_HOME
+
+export YARN_HOME=$HADOOP_HOME
+export YARN_CONF_DIR=$HADOOP_HOME/etc/hadoop
+
+export ZOOKEEPER_HOME=/home/zookeeper
+
+export PATH=$JAVA_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$ZOOKEEPER_HOME/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:$HOME/.local/bin:$HOME/bin
+
+
+
+
+mkdir /app
+mkdir /data
+mkdir /app/log
+
+mkdir /data/jn
+mkdir /data/nn
+mkdir /data/dn
+mkdir /data/nn/fsimage
+mkdir /data/dn/hdfs
+
+mkdir /data/zookeeper/
+
+
+chown -R hadoop:hadoop /app /data /home
+
+
+
+
+
+vi /etc/security/limits.conf
+root - nofile 32768
+root - nproc  65536
+ *   - nofile 32768
+ *   - nproc  65536
+
+
+ufw disable
+service ufw stop
+ufw allow 22
+ufw allow 80
+ufw allow 8080
+ufw allow 8485
+ufw allow 9000
+ufw allow 9001
+
+ufw allow 2181
+
+
+
+
+setup Hadoop Manual
+vi /home/hadoop/etc/hadoop/hadoop-env.sh
+export JAVA_HOME=/opt/jdk1.8.0
+
+/home/hadoop/bin/hadoop version
+/home/hadoop/bin/hadoop fs -mkdir input_dir
+/home/hadoop/bin/hadoop jar /home/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.2.jar wordcount input output
+/home/hadoop/bin/hadoop jar /home/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.2.jar grep      input output 'dfs[a-z.]+'
+
+
+HADOOP HA CLUSTER
+Quorum-based Storage (Quorum Journal Manager = QJM) vs Shared storage using NFS
+Cloudera recommends Quorum-based Storage as the more robust solution.
+Shared storage using NFS is supported only in CDH4, not in CDH5
+
+http://www.edureka.co/blog/how-to-set-up-hadoop-cluster-with-hdfs-high-availability/
+
+http://www.cloudera.com/documentation/archive/cdh/4-x/4-3-0/CDH4-High-Availability-Guide/cdh4hag_topic_2_3.html
+
+What is HDFS Federation ?
+
+Secondary/CheckPoint/Backup NameNode
+http://blog.madhukaraphatak.com/secondary-namenode---what-it-really-do/
+http://stackoverflow.com/questions/31486847/secondary-name-node-functionality
+Hadoop 1.x:
+
+When we start HA hadoop cluster its creates a fsimage which keeps the metadata information of your entire hadopp cluster.
+When a new entry comes into the hadoop cluster it goes to edits log.
+Secondary NameNode periodically reads and query the edits and retrieve the information and merge the information with fsimage.
+In case NameNode fails, hadoop administrator can start the hadoop cluster with the help of fsimage and edits.
+(during start NameNode reads the edits and fsimage so there wont be data loss)
+
+Fsimage and edits log already keeps the updated information about file system in the form of metadata
+so in case of total failure of primary hadoop administrator can recover the cluster information with help of edits log and fsimage.
+
+
+
+Hadoop 2.x:
+
+In hadoop 1.x NameNode was a single point of failure.
+Failure of NameNode was downtime for your entire hadoop cluster.
+Planned maintenance events such as software or hardware upgrades on the NameNode machine would result in periods of cluster downtime.
+To overcome this issue hadoop community added HA feature.
+During the setting up of hadoop cluster you can choose which type of cluster you want.
+
+The HDFS NameNode HA feature enables you to run redundant NameNodes in the same cluster in an Active/Passive configuration with a hot standby.
+Both NameNode require the same type of hardware configuration.
+
+In HA configuration one NameNode will be active and other will be in standby state.
+The ZKFailoverController (ZKFC) is a ZooKeeper client that monitors and manages the state of the NameNode.
+When active NameNode goes down, It makes standby as active NameNode, and primary NameNode will become standby when you start them.
+Please can get more on it on this website: http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.0.8.0/bk_system-admin-guide/content/ch_hadoop-ha-5.html
+
+In HA hadoop cluster Active NameNode reads and write metadata information in JournalNode(Quorum-based Storage only).
+JournalNode is a separate node in HA hadoop cluster used for reads and write edits log and fsimage.
+
+Standby NameNode always synchronized with active NameNode, both communicate with each other through Journal Node.
+When any namespace modification is performed by the Active node, it durably logs a record of the modification to a majority of these JNs.
+Standby NameNode constantly monitors edit logs at journal nodes and updates its namespace accordingly.
+
+In the event of failover, standby NameNode will ensure that its namespace is completely updated according to edit logs
+before it is changes to active state. When standby will be in active state it will start writing edits log into JournalNode.
+
+Hadoop don't keep any data into NameNode.
+All data resides in datanode.
+In case of NameNode failure there wont be any loss of data.
+
+
+cd /home/zookeeper/conf
+scp -rp zoo_sample.cfg  zoo.cfg
+vi /home/zookeeper/conf/zoo.cfg
+dataDir=/data/zookeeper
+Server.1=nn1:2888:3888
+Server.2=nn2:2888:3888
+Server.3=dn1:2888:3888
+Server.4=dn2:2888:3888
+
+
+vi /data/zookeeper/myid
+1,2,3,4
+
+
+
+
+
+vi /home/hadoop/etc/hadoop/mapred-site.xml
+<configuration>
+  <property>
+    <name>mapred.job.tracker</name>
+    <value>master:9001</value>
+  </property>
+</configuration>
+
+
+
+
+/home/hadoop/sbin/start-dfs.sh
+/home/hadoop/sbin/stop-dfs.sh
+
+/home/hadoop/bin/hdfs namenode -format
+/home/hadoop/bin/hdfs fsck / -files -blocks
+/home/hadoop/bin/hdfs dfs -mkdir /input
+/home/hadoop/bin/hdfs dfs -put   /home/hadoop/etc/hadoop /input
+
+
+
+Setup HDP HA Cluster
+1. Start the JournalNode daemon in ALL nodes
+/home/hadoop/sbin/hadoop-daemon.sh start journalnode
+
+2. Format ACTIVE NameNode (nn1), folder dfs.name.dir
+/home/hadoop/bin/hdfs namenode -format
+
+3. Start NameNode daemon in ACTIVE NameNode (nn1)
+/home/hadoop/sbin/hadoop-daemon.sh start namenode
+
+4. Copy the HDFS metadata from ACTIVE NameNode (nn1) to STANDBY NameNode (nn2)
+   on the STANDBY NameNode (nn2) which is unformatted
+/home/hadoop/bin/hdfs namenode -bootstrapStandby
+
+5. Start NameNode daemon in STANDBY NameNode (nn2)
+/home/hadoop/sbin/hadoop-daemon.sh start namenode
+
+6. Start ZooKeeper service in ALL nodes
+/home/zookeeper/bin/zkServer.sh start
+/home/zookeeper/bin/zkServer.sh status
+
+7. Start the DataNode daemon in ALL DataNode machines
+/home/hadoop/sbin/hadoop-daemon.sh start datanode
+
+8. Format and then start ZooKeeper failover controller in ACTIVE and STANDBY NameNode
+/home/hadoop/bin/hdfs zkfc -formatZK
+/home/hadoop/sbin/hadoop-daemon.sh start zkfc
+
+9. Check status of each NameNode
+/home/hadoop/bin/hdfs haadmin -getServiceState nn1
+/home/hadoop/bin/hdfs haadmin -getServiceState nn2
+
+## TESTING
+/home/hadoop/bin/hdfs haadmin -transitionToActive  --forcemanual nn1
+/home/hadoop/bin/hdfs haadmin -transitionToStandby --forcemanual nn2
+
+

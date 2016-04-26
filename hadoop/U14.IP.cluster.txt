@@ -1,0 +1,200 @@
+
+aptitude vs apt vs apt-get
+
+** http://zeldor.biz/2010/12/activepassive-cluster-with-pacemaker-corosync/
+
+https://www.digitalocean.com/community/tutorials/how-to-create-a-high-availability-setup-with-corosync-pacemaker-and-floating-ips-on-ubuntu-14-04
+https://www.digitalocean.com/community/tutorials/how-to-create-a-high-availability-setup-with-heartbeat-and-floating-ips-on-ubuntu-14-04
+https://www.digitalocean.com/community/tutorials/how-to-set-up-highly-available-web-servers-with-keepalived-and-floating-ips-on-ubuntu-14-04
+
+vi /etc/network/interfaces
+auto eth0
+iface eth0 inet static
+address 192.168.1.221
+netmask 255.255.255.0
+gateway 192.168.1.1
+dns-nameservers 8.8.8.8 8.8.4.4
+
+auto eth1
+iface eth1 inet dhcp
+
+
+vi /etc/hosts
+192.168.1.221 node1
+192.168.1.222 node2
+
+aptitude install pacemaker corosync fence-agents
+apt-get  install haveged
+
+corosync-keygen
+scp -rp /etc/corosync/authkey root@node2:/etc/corosync/authkey
+
+vi /etc/corosync/corosync.conf
+totem {
+  version: 2
+  cluster_name: pacemaker1
+  transport: udpu
+  interface {
+    ringnumber: 0
+    bindnetaddr: node1
+    broadcast: yes
+    mcastport: 5405
+  }
+}
+
+nodelist {
+  node {
+    ring0_addr: node1
+    name: node1
+    nodeid: 221
+  }
+
+  node {
+  ring0_addr: node2
+  name: node2
+  nodeid: 222
+  }
+}
+
+quorum {
+  provider: corosync_votequorum
+  two_node: 1
+  wait_for_all: 1
+  last_man_standing: 1
+  auto_tie_breaker: 0
+}
+
+logging {
+  to_logfile: yes
+  logfile: /var/log/corosync/corosync.log
+  to_syslog: yes
+  timestamp: on
+}
+
+vi /etc/corosync/service.d/pcmk
+service {
+  name: pacemaker
+  ver: 1
+}
+
+
+vi /etc/default/corosync
+START=yes
+
+
+update-rc.d pacemaker defaults 20 01
+service pacemaker start
+
+crm     status
+crm_mon -1
+crm_mon --interval=1
+crm configure show
+
+crm configure property stonith-enabled=false
+crm configure property no-quorum-policy=ignore
+crm configure property migration-threshold=1
+
+crm configure primitive dummy ocf:pacemaker:Dummy op monitor interval=120s
+
+crm configure primitive IP228 ocf:heartbeat:IPaddr2 \
+	params ip="192.168.1.228" nic="eth0" \
+	op monitor interval="10s" \
+	meta is-managed="true"
+crm configure rsc_defaults resource-stickiness=100
+
+crm resource move IP228 node2
+crm resource stop dummy
+crm configure delete dummy
+
+
+crm node standby node1
+crm node online  node1
+crm ra list ocf heartbeat
+crm ra list ocf pacemaker
+
+crm resource meta IP228 set is-managed false
+# after upgrades or restarts put it to the managed status back
+crm resource meta IP228 set is-managed true
+
+
+#Publish
+crm_mon --daemonize --as-html cluster.html
+echo "crm_mon --daemonize --as-html /var/www/html/cluster/index.html" >> /etc/rc.d/rc.local
+
+
+
+#Build and Install Keepalived
+
+apt-get install build-essential libssl-dev
+
+tar -zxvf keeplived**tar.gz
+
+./configure
+make
+sudo make install
+
+
+#Node1
+vi /etc/keepalived/keepalived.conf
+vrrp_instance VI_1 {
+  state MASTER
+  interface eth0
+  virtual_router_id 229
+  priority 200
+  advert_int 1
+
+  authentication {
+    auth_type PASS
+    auth_pass alltriX168
+  }
+
+  virtual_ipaddress {
+    192.168.1.229
+  }
+}
+
+#Node2
+vi /etc/keepalived/keepalived.conf
+vrrp_instance VI_1 {
+  state BACKUP
+  interface eth0
+  virtual_router_id 229
+  priority 100
+  advert_int 1
+
+  authentication {
+    auth_type PASS
+    auth_pass alltriX168
+  }
+
+  virtual_ipaddress {
+    192.168.1.229
+  }
+}
+
+
+
+
+## NO NEED ##
+vi /etc/init/keeplived.conf
+description "load-balancing and high-availability service"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+respawn
+
+exec /usr/local/sbin/keepalived --dont-fork
+
+
+sysctl
+echo 1 > /proc/sys/net/ipv4/ip_nonlocal_bind
+
+vi /etc/sysctl.conf
+net.ipv4.ip_nonlocal_bind = 1
+
+sysctl -p
+
+## NO NEED ##
+
+
