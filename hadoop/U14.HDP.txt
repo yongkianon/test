@@ -188,7 +188,7 @@ The HDFS NameNode HA feature enables you to run redundant NameNodes in the same 
 Both NameNode require the same type of hardware configuration.
 
 In HA configuration one NameNode will be active and other will be in standby state.
-The ZKFailoverController (ZKFC) is a ZooKeeper client that monitors and manages the state of the NameNode.
+        The ZKFailoverController (ZKFC) is a ZooKeeper client that monitors and manages the state of the NameNode.
 When active NameNode goes down, It makes standby as active NameNode, and primary NameNode will become standby when you start them.
 Please can get more on it on this website: http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.0.8.0/bk_system-admin-guide/content/ch_hadoop-ha-5.html
 
@@ -248,12 +248,14 @@ vi /home/hadoop/etc/hadoop/mapred-site.xml
 Setup HDP HA Cluster
 1. Start the JournalNode daemon in ALL nodes
 /home/hadoop/sbin/hadoop-daemon.sh start journalnode
+/home/hadoop/sbin/hadoop-daemon.sh stop  journalnode
 
 2. Format ACTIVE NameNode (nn1), folder dfs.name.dir
 /home/hadoop/bin/hdfs namenode -format
 
 3. Start NameNode daemon in ACTIVE NameNode (nn1)
 /home/hadoop/sbin/hadoop-daemon.sh start namenode
+/home/hadoop/sbin/hadoop-daemon.sh stop  namenode
 
 4. Copy the HDFS metadata from ACTIVE NameNode (nn1) to STANDBY NameNode (nn2)
    on the STANDBY NameNode (nn2) which is unformatted
@@ -264,6 +266,7 @@ Setup HDP HA Cluster
 
 6. Start ZooKeeper service in ALL nodes
 /home/zookeeper/bin/zkServer.sh start
+/home/zookeeper/bin/zkServer.sh stop
 /home/zookeeper/bin/zkServer.sh status
 
 7. Start the DataNode daemon in ALL DataNode machines
@@ -272,13 +275,17 @@ Setup HDP HA Cluster
 8. Format and then start ZooKeeper failover controller in ACTIVE and STANDBY NameNode
 /home/hadoop/bin/hdfs zkfc -formatZK
 /home/hadoop/sbin/hadoop-daemon.sh start zkfc
+/home/hadoop/sbin/hadoop-daemon.sh stop  zkfc
 
 9. Check status of each NameNode
 /home/hadoop/bin/hdfs haadmin -getServiceState nn1
 /home/hadoop/bin/hdfs haadmin -getServiceState nn2
 
 ## TESTING
+/home/hadoop/bin/hdfs haadmin -transitionToStandby nn2
+/home/hadoop/bin/hdfs haadmin -forcemanual         nn2
+/home/hadoop/bin/hdfs haadmin -failover        nn1 nn2
+
 /home/hadoop/bin/hdfs haadmin -transitionToActive  --forcemanual nn1
 /home/hadoop/bin/hdfs haadmin -transitionToStandby --forcemanual nn2
-
 
