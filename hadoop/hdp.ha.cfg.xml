@@ -38,20 +38,28 @@
 
   <configuration>
 
-    <property>
-      <name>dfs.ha.namenode.id</name>
-      <!-- nnX = either value nn1 or nn2 -->
-      <value>nnX</value>
-    </property>
+    <!-- master nn1, nn2, JobTracker and YARN ResourceManager -->
 
     <property>
-      <!-- OLD dfs.name.dir -->
+      <name>dfs.namenode.shared.edits.dir</name>
+      <value>qjournal://jn1:8485;jn2:8485;jn3:8485/SHT</value>
+    </property>
+
+    <!--
+        <property>
+          <name>dfs.ha.namenode.id</name>
+          nnX = either value nn1 or nn2
+          <value>nnX</value>
+        </property>
+    -->
+    <property>
+      <!-- OLD = dfs.name.dir -->
       <name>dfs.namenode.name.dir</name>
       <value>/data/nn/fsimage</value>
     </property>
 
     <property>
-      <!-- OLD dfs.data.dir -->
+      <!-- OLD = dfs.data.dir -->
       <name>dfs.datanode.data.dir</name>
       <value>/data/dn/hdfs</value>
     </property>
@@ -59,6 +67,16 @@
     <property>
       <name>dfs.replication</name>
       <value>3</value>
+    </property>
+
+    <property>
+      <name>dfs.namenode.num.checkpoints.retained</name>
+      <value>3</value>
+    </property>
+
+    <property>
+      <name>dfs.namenode.num.extra.edits.retained</name>
+      <value>10</value>
     </property>
 
     <property>
@@ -94,13 +112,6 @@
     <property>
       <name>dfs.namenode.http-address.SHT.nn2</name>
       <value>nn2:8080</value>
-    </property>
-
-    <!-- master nn1, nn2, JobTracker and YARN ResourceManager -->
-
-    <property>
-      <name>dfs.namenode.shared.edits.dir</name>
-      <value>qjournal://nn1:8485;nn2:8485;dn1:8485/SHT</value>
     </property>
 
     <property>
