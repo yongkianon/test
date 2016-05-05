@@ -34,12 +34,10 @@
       <value>file:/data/snn/fsimage</value>
     </property>
 
-    <!--
     <property>
-      <name>fs.checkpoint.edits.dir</name>
-      <value>file:/data/snn</value>
+      <name>dfs.namenode.checkpoint.period</name>
+      <value>10</value>
     </property>
-    -->
 
     <property>
       <name>dfs.datanode.data.dir</name>

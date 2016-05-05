@@ -40,6 +40,7 @@ YARN_HEAPSIZE=500
 /home/hadoop/sbin/yarn-daemon.sh start nodemanager
 
 4. Web Console
-http://localhost:50070
-http://localhost:8088
+RM: http://localhost:8088
+NM: http://localhost:8042
+NN: http://localhost:50070
 

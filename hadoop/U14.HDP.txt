@@ -69,12 +69,20 @@ export PATH=$JAVA_HOME/bin:$PATH
 vi /etc/hosts
 192.168.1.201  nn1        nn1.alltrix.biz
 192.168.1.202  nn2        nn2.alltrix.biz
+
+192.168.1.201  rm1        rm1.alltrix.biz
+192.168.1.202  rm2        rm2.alltrix.biz
+
 192.168.1.211  dn1        dn1.alltrix.biz
 192.168.1.212  dn2        dn2.alltrix.biz
 
 192.168.1.201  jn1        jn1.alltrix.biz
 192.168.1.202  jn2        jn2.alltrix.biz
 192.168.1.211  jn3        jn3.alltrix.biz
+
+192.168.1.201  zk1        zk1.alltrix.biz
+192.168.1.202  zk2        zk2.alltrix.biz
+192.168.1.211  zk3        zk3.alltrix.biz
 
 192.168.1.200  master  master.alltrix.biz
 192.168.1.210  slave    slave.alltrix.biz
