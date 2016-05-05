@@ -1,0 +1,79 @@
+<test>
+
+  <!-- core-site.xml -->
+  <configuration>
+
+    <property>
+      <name>fs.default.name</name>
+      <value>hdfs://localhost:9000</value>
+    </property>
+
+    <property>
+      <name>hadoop.http.staticuser.user</name>
+      <value>hadoop</value>
+    </property>
+
+  </configuration>
+
+
+  <!-- hdfs-site.xml -->
+  <configuration>
+
+    <property>
+      <name>dfs.replication</name>
+      <value>1</value>
+    </property>
+
+    <property>
+      <name>dfs.namenode.name.dir</name>
+      <value>file:/data/nn/fsimage</value>
+    </property>
+
+    <property>
+      <name>dfs.namenode.checkpoint.dir</name>
+      <value>file:/data/snn/fsimage</value>
+    </property>
+
+    <!--
+    <property>
+      <name>fs.checkpoint.edits.dir</name>
+      <value>file:/data/snn</value>
+    </property>
+    -->
+
+    <property>
+      <name>dfs.datanode.data.dir</name>
+      <value>file:/data/dn/hdfs</value>
+    </property>
+
+  </configuration>
+
+
+  <!-- mapred-site.xml -->
+  <configuration>
+
+    <property>
+      <name>mapreduce.framework.name</name>
+      <value>yarn</value>
+    </property>
+
+  </configuration>
+
+
+  <!-- yarn-site.xml -->
+  <configuration>
+
+    <property>
+      <name>yarn.nodemanager.aux-services</name>
+      <value>mapreduce_shuffle</value>
+    </property>
+
+    <property>
+      <name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
+      <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+    </property>
+
+  </configuration>
+
+</test>
+

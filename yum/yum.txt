@@ -1,0 +1,19 @@
+
+# mount ISO    as repo
+# mount folder as repo
+
+
+yum    update <package> <kernel>
+yum -y update <package> <kernel>
+
+# yum download without installing
+yum install yum-utils
+yumdownloader <package>
+
+
+# check kernel version
+uname -r
+
+
+
+

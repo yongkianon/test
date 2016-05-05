@@ -254,7 +254,7 @@ Setup HDP HA Cluster
 /home/hadoop/sbin/hadoop-daemon.sh start journalnode
 /home/hadoop/sbin/hadoop-daemon.sh stop  journalnode
 
-2. Format ACTIVE NameNode (nn1), folder dfs.name.dir
+2. Format ACTIVE NameNode (nn1), folder dfs.namenode.name.dir
 /home/hadoop/bin/hdfs namenode -format
 
 3. Start NameNode daemon in ACTIVE NameNode (nn1)

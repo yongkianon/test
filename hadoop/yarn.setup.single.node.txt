@@ -1,0 +1,45 @@
+
+useradd hadoop
+-- useradd -g hadoop hdfs
+-- useradd -g hadoop mapred
+useradd -g hadoop yarn
+
+
+mkdir -p /data/nn/fsimage
+mkdir -p /data/snn/fsimage
+mkdir -p /data/dn/hdfs
+
+mkdir -p /app/logs/yarn
+
+chown -R hadoop:hadoop /data
+chown -R   yarn:hadoop /app/logs/yarn
+
+
+vi /home/hadoop/etc/hadoop/hadoop-env.sh
+HADOOP_HEAPSIZE=500
+HADOOP_NAMENODE_INIT_HEAPSIZE=500
+
+vi /home/hadoop/etc/hadoop/mapred-env.sh
+HADOOP_JOB_HISTORYSERVER_HEAPSIZE=250
+
+vi /home/hadoop/etc/hadoop/yarn-env.sh
+JAVA_HEAP_MAX=-Xmx500m
+YARN_HEAPSIZE=500
+
+
+1. Format NameNode folder dfs.namenode.name.dir
+/home/hadoop/bin/hdfs namenode -format
+
+2. Start NameNode/SecondaryNameNode/DataNode daemon
+/home/hadoop/sbin/hadoop-daemon.sh start namenode
+/home/hadoop/sbin/hadoop-daemon.sh start secondarynamenode
+/home/hadoop/sbin/hadoop-daemon.sh start datanode
+
+3. Start YARN Services
+/home/hadoop/sbin/yarn-daemon.sh start resourcemanager
+/home/hadoop/sbin/yarn-daemon.sh start nodemanager
+
+4. Web Console
+http://localhost:50070
+http://localhost:8088
+

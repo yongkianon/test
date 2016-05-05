@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<configuration>
+
+  <!-- http://hortonworks.com/blog/how-to-plan-and-configure-yarn-in-hdp-2-0/ -->
+
+  <property>
+    <!-- TOTAL 48 GB. YARN 40 GB, OS 8 GB -->
+    <name>yarn.nodemanager.resource.memory-mb</name>
+    <value>40960</value>
+  </property>
+
+  <property>
+    <!-- 2 GB MEM per container, 20 x containers -->
+    <name>yarn.scheduler.minimum-allocation-mb</name>
+    <value>2048</value>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.vmem-pmem-ratio</name>
+    <value>2.1</value>
+  </property>
+
+</configuration>
+
