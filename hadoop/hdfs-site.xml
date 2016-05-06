@@ -31,7 +31,7 @@
 
   <property>
     <name>dfs.replication</name>
-    <value>3</value>
+    <value>2</value>
   </property>
 
   <property>
@@ -72,11 +72,11 @@
 
   <property>
     <name>dfs.namenode.http-address.SHT.nn1</name>
-    <value>nn1:8080</value>
+    <value>nn1:50070</value>
   </property>
   <property>
     <name>dfs.namenode.http-address.SHT.nn2</name>
-    <value>nn2:8080</value>
+    <value>nn2:50070</value>
   </property>
 
   <property>

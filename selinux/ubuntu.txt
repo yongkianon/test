@@ -1,0 +1,7 @@
+
+apt install selinux-utils
+
+getenforce
+setenforce
+
+

@@ -1,8 +1,8 @@
 
 useradd hadoop
--- useradd -g hadoop hdfs
--- useradd -g hadoop mapred
-useradd -g hadoop yarn
+# useradd -g hadoop hdfs
+# useradd -g hadoop mapred
+# useradd -g hadoop yarn
 
 
 mkdir -p /data/nn/fsimage
@@ -12,7 +12,7 @@ mkdir -p /data/dn/hdfs
 mkdir -p /app/logs/yarn
 
 chown -R hadoop:hadoop /data
-chown -R   yarn:hadoop /app/logs/yarn
+chown -R hadoop:hadoop /app/logs/yarn
 
 
 vi /home/hadoop/etc/hadoop/hadoop-env.sh

@@ -67,11 +67,21 @@ export PATH=$JAVA_HOME/bin:$PATH
 
 
 vi /etc/hosts
+
+192.168.1.201  nn1 rm1 nm1 jn1 zk1
+192.168.1.202  nn2 rm2 nm2 jn2 zk2
+
+192.168.1.211      dn1 nm3 jn3 zk3
+192.168.1.212      dn2 nm4 jn4 zk4
+
 192.168.1.201  nn1        nn1.alltrix.biz
 192.168.1.202  nn2        nn2.alltrix.biz
 
 192.168.1.201  rm1        rm1.alltrix.biz
 192.168.1.202  rm2        rm2.alltrix.biz
+
+192.168.1.211  nm1        nm1.alltrix.biz
+192.168.1.212  nm2        nm2.alltrix.biz
 
 192.168.1.211  dn1        dn1.alltrix.biz
 192.168.1.212  dn2        dn2.alltrix.biz
@@ -300,4 +310,16 @@ Setup HDP HA Cluster
 
 /home/hadoop/bin/hdfs haadmin -transitionToActive  --forcemanual nn1
 /home/hadoop/bin/hdfs haadmin -transitionToStandby --forcemanual nn2
+
+
+### RM HA ###
+
+1. Check status of each RM node
+/home/hadoop/bin/yarn rmadmin -getServiceState rm1
+/home/hadoop/bin/yarn rmadmin -getServiceState rm2
+
+/home/hadoop/bin/yarn rmadmin -checkHealth         rm1
+/home/hadoop/bin/yarn rmadmin -transitionToActive  --forcemanual rm1
+/home/hadoop/bin/yarn rmadmin -transitionToStandby --forcemanual rm2
+
 
