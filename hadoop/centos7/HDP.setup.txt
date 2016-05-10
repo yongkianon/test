@@ -27,12 +27,12 @@ alternatives --install /usr/bin/scalap   scalap   /opt/scala/bin/scalap   2
 
 
 vi /etc/hosts
-192.168.1.11  nn1 rm1 nm1 jn1 zk1
-192.168.1.12  nn2 rm2 nm2 jn2 zk2
-192.168.1.13      dn1 nm3 jn3 zk3
-192.168.1.14      dn2 nm4 jn4 zk4
-192.168.1.15      dn3 nm5 jn5 zk5
-192.168.1.16      dn4 nm6 jn6 zk6
+192.168.1.11 node1 nn1 rm1 nm1 jn1 zk1
+192.168.1.12 node2 nn2 rm2 nm2 jn2 zk2
+192.168.1.13 node3     dn1 nm3 jn3 zk3
+192.168.1.14 node4     dn2 nm4 jn4 zk4
+192.168.1.15 node5     dn3 nm5 jn5 zk5
+192.168.1.16 node6     dn4 nm6 jn6 zk6
 
 
 
@@ -71,8 +71,10 @@ export   YARN_CONF_DIR=/etc/hadoop/conf
 
 export        LOG_DIR=/app/logs
 export HADOOP_LOG_DIR=/app/logs
+export   YARN_LOG_DIR=/app/logs
 
-export ZOOKEEPER_HOME=/usr/hdp/current/zookeeper-server
+#could not use ZOOKEEPER_HOME, maybe ZKPR_HOME
+export ZKPR_HOME=/usr/hdp/current/zookeeper-server
 
 export SCALA_HOME=/opt/scala
 export SPARK_HOME=/opt/spark
@@ -127,21 +129,23 @@ server.3=zk3:2888:3888
 
 
 
+hostnamectl status
+hostnamectl set-hostname node1
+  systemctl restart systemd-hostnamed
+
+
 
 ### You need 3 nodes ready by now ###
 
 Setup HDP HA Cluster
 1. Start the JournalNode daemon in ALL nodes
 $HADOOP_HOME/sbin/hadoop-daemon.sh start journalnode
-/usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh start journalnode
-/usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh stop  journalnode
 
 2. Format ACTIVE NameNode (nn1), folder dfs.namenode.name.dir
 /usr/bin/hdfs namenode -format
 
 3. Start NameNode daemon in ACTIVE NameNode (nn1)
 $HADOOP_HOME/sbin/hadoop-daemon.sh start namenode
-$HADOOP_HOME/sbin/hadoop-daemon.sh stop  namenode
 
 4. Copy the HDFS metadata from ACTIVE NameNode (nn1) to STANDBY NameNode (nn2)
    on the STANDBY NameNode (nn2) which is unformatted
@@ -152,7 +156,6 @@ $HADOOP_HOME/sbin/hadoop-daemon.sh start namenode
 
 6. Start ZooKeeper service in ALL nodes
 /usr/hdp/current/zookeeper-server/bin/zkServer.sh start
-/usr/hdp/current/zookeeper-server/bin/zkServer.sh stop
 /usr/hdp/current/zookeeper-server/bin/zkServer.sh status
 
 7. Start the DataNode daemon in ALL DataNode machines
@@ -161,7 +164,6 @@ $HADOOP_HOME/sbin/hadoop-daemon.sh start datanode
 8. Format and then start ZooKeeper failover controller in ACTIVE and STANDBY NameNode
 /usr/bin/hdfs zkfc -formatZK
 $HADOOP_HOME/sbin/hadoop-daemon.sh start zkfc
-$HADOOP_HOME/sbin/hadoop-daemon.sh stop  zkfc
 
 9. Check status of each NameNode
 /usr/bin/hdfs haadmin -getServiceState nn1
