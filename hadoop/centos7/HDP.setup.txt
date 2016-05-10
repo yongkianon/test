@@ -41,7 +41,7 @@ mkdir -p /data/nn
 mkdir -p /data/snn
 mkdir -p /data/dn
 mkdir -p /data/zk
-chown -R hadoop:hadoop /app /data
+chown -R hadoop:hadoop /app /data /etc/hadoop /etc/zookeeper
 
 
 vi /etc/security/limits.conf
@@ -58,6 +58,22 @@ root - nproc  65536
 
 
 vi /etc/profile.d/hadoop.sh
+
+export HADOOP_HOME=/usr/hdp/current/hadoop-client
+export HADOOP_COMMON_HOME=$HADOOP_HOME
+
+export   HADOOP_HDFS_HOME=/usr/hdp/current/hadoop-hdfs-client
+export HADOOP_MAPRED_HOME=/usr/hdp/current/hadoop-mapreduce-client
+export          YARN_HOME=/usr/hdp/current/hadoop-yarn-client
+
+export HADOOP_CONF_DIR=/etc/hadoop/conf
+export   YARN_CONF_DIR=/etc/hadoop/conf
+
+export        LOG_DIR=/app/logs
+export HADOOP_LOG_DIR=/app/logs
+
+export ZOOKEEPER_HOME=/usr/hdp/current/zookeeper-server
+
 export SCALA_HOME=/opt/scala
 export SPARK_HOME=/opt/spark
 export JAVA_HOME=/opt/jdk1.8.0
@@ -101,12 +117,73 @@ cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 
 vi /etc/zookeeper/conf/zoo.cfg
 dataDir=/data/zk
-Server.1=zk1:2888:3888
-Server.2=zk2:2888:3888
-Server.3=zk3:2888:3888
+server.1=zk1:2888:3888
+server.2=zk2:2888:3888
+server.3=zk3:2888:3888
 
 [zk1] echo 1 > /data/zk/myid
 [zk2] echo 2 > /data/zk/myid
 [zk3] echo 3 > /data/zk/myid
+
+
+
+
+### You need 3 nodes ready by now ###
+
+Setup HDP HA Cluster
+1. Start the JournalNode daemon in ALL nodes
+$HADOOP_HOME/sbin/hadoop-daemon.sh start journalnode
+/usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh start journalnode
+/usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh stop  journalnode
+
+2. Format ACTIVE NameNode (nn1), folder dfs.namenode.name.dir
+/usr/bin/hdfs namenode -format
+
+3. Start NameNode daemon in ACTIVE NameNode (nn1)
+$HADOOP_HOME/sbin/hadoop-daemon.sh start namenode
+$HADOOP_HOME/sbin/hadoop-daemon.sh stop  namenode
+
+4. Copy the HDFS metadata from ACTIVE NameNode (nn1) to STANDBY NameNode (nn2)
+   on the STANDBY NameNode (nn2) which is unformatted
+/usr/bin/hdfs namenode -bootstrapStandby
+
+5. Start NameNode daemon in STANDBY NameNode (nn2)
+$HADOOP_HOME/sbin/hadoop-daemon.sh start namenode
+
+6. Start ZooKeeper service in ALL nodes
+/usr/hdp/current/zookeeper-server/bin/zkServer.sh start
+/usr/hdp/current/zookeeper-server/bin/zkServer.sh stop
+/usr/hdp/current/zookeeper-server/bin/zkServer.sh status
+
+7. Start the DataNode daemon in ALL DataNode machines
+$HADOOP_HOME/sbin/hadoop-daemon.sh start datanode
+
+8. Format and then start ZooKeeper failover controller in ACTIVE and STANDBY NameNode
+/usr/bin/hdfs zkfc -formatZK
+$HADOOP_HOME/sbin/hadoop-daemon.sh start zkfc
+$HADOOP_HOME/sbin/hadoop-daemon.sh stop  zkfc
+
+9. Check status of each NameNode
+/usr/bin/hdfs haadmin -getServiceState nn1
+/usr/bin/hdfs haadmin -getServiceState nn2
+
+## TESTING
+/usr/bin/hdfs haadmin -transitionToStandby nn2
+/usr/bin/hdfs haadmin -forcemanual         nn2
+/usr/bin/hdfs haadmin -failover        nn1 nn2
+
+/usr/bin/hdfs haadmin -transitionToActive  --forcemanual nn1
+/usr/bin/hdfs haadmin -transitionToStandby --forcemanual nn2
+
+
+### RM HA ###
+
+1. Check status of each RM node
+/usr/bin/yarn rmadmin -getServiceState rm1
+/usr/bin/yarn rmadmin -getServiceState rm2
+
+/usr/bin/yarn rmadmin -checkHealth         rm1
+/usr/bin/yarn rmadmin -transitionToActive  --forcemanual rm1
+/usr/bin/yarn rmadmin -transitionToStandby --forcemanual rm2
 
 

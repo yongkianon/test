@@ -90,7 +90,7 @@
 
   <property>
     <name>dfs.hosts.exclude</name>
-    <value>/etc/hadoop/dfs.hosts.exclude.txt</value>
+    <value>/etc/hadoop/conf/dfs.hosts.exclude.txt</value>
     <description>DFS exclude hosts</description>
   </property>
 
