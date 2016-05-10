@@ -25,9 +25,6 @@ alternatives --install /usr/bin/scalac   scalac   /opt/scala/bin/scalac   2
 alternatives --install /usr/bin/scaladoc scaladoc /opt/scala/bin/scaladoc 2
 alternatives --install /usr/bin/scalap   scalap   /opt/scala/bin/scalap   2
 
-alternatives --install /usr/bin/pyspark       pyspark       /opt/spark/bin/pyspark      2
-alternatives --install /usr/bin/spark-submit  spark-submit  /opt/spark/bin/spark-submit 2
-
 
 vi /etc/hosts
 192.168.1.11  nn1 rm1 nm1 jn1 zk1
@@ -41,7 +38,7 @@ vi /etc/hosts
 
 mkdir -p /data/jn
 mkdir -p /data/nn
--- mkdir -p /data/snn
+mkdir -p /data/snn
 mkdir -p /data/dn
 mkdir -p /data/zk
 chown -R hadoop:hadoop /app /data
@@ -62,16 +59,18 @@ root - nproc  65536
 
 vi /etc/profile.d/hadoop.sh
 export SCALA_HOME=/opt/scala
+export SPARK_HOME=/opt/spark
 export JAVA_HOME=/opt/jdk1.8.0
-export PATH=$JAVA_HOME/bin:$PATH
+export PATH=$JAVA_HOME/bin:$SPARK_HOME/bin:$PATH
 
 
 
 #NTP and Firewall
-systemctl enable ntpd
-systemctl start  ntpd
+systemctl disable chrony.service
+systemctl enable  ntpd.service
+systemctl start   ntpd
 
-systemctl disable firewalld
+systemctl disable firewalld.service
 systemctl mask    firewalld
 systemctl stop    firewalld
 
@@ -93,11 +92,14 @@ reboot
 
 #setup password-less login
 ssh-keygen -t rsa
-cd ~/.ssh/
-cat id_rsa.pub >> authorized_keys
+# Press ENTER when (Enter file in which to save the key (/home/hadoop/.ssh/id_rsa):)
+# Press ENTER when (Enter passphrase (empty for no passphrase):)
+# Press ENTER when (Enter same passphrase again:)
+
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 
 
-vi ${/home/zookeeper}/conf/zoo.cfg
+vi /etc/zookeeper/conf/zoo.cfg
 dataDir=/data/zk
 Server.1=zk1:2888:3888
 Server.2=zk2:2888:3888
