@@ -9,7 +9,13 @@ OS tuning, ulimit nofile, nproc
 JVM memory tuning
 
 
-Windows SSH client access with password-less
+#Could not SSH password-less login
+#.ssh folder must be 755 (NO 2-party write access)
+chmod 755 ~/.ssh
+
+PUTTY access with password-less
+
+
 more /etc/profile
 more /etc/hosts
 more /etc/hostname
@@ -121,17 +127,12 @@ export PATH=$JAVA_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$ZOOKEEPER_HOME/bi
 
 
 
-mkdir /app
-mkdir /data
-mkdir /app/log
+mkdir -p /data/jn
+mkdir -p /data/nn
+mkdir -p /data/snn
+mkdir -p /data/dn
 
-mkdir /data/jn
-mkdir /data/nn
-mkdir /data/dn
-mkdir /data/nn/fsimage
-mkdir /data/dn/hdfs
-
-mkdir /data/zookeeper/
+mkdir -p /data/zk
 
 
 chown -R hadoop:hadoop /app /data /home
@@ -233,14 +234,13 @@ cd /home/zookeeper/conf
 scp -rp zoo_sample.cfg  zoo.cfg
 vi /home/zookeeper/conf/zoo.cfg
 dataDir=/data/zookeeper
-Server.1=nn1:2888:3888
-Server.2=nn2:2888:3888
-Server.3=dn1:2888:3888
-Server.4=dn2:2888:3888
+Server.1=zk1:2888:3888
+Server.2=zk2:2888:3888
+Server.3=zk3:2888:3888
 
 
-vi /data/zookeeper/myid
-1,2,3,4
+vi /data/zk/myid
+1,2,3
 
 
 

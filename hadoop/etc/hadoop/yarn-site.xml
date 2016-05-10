@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<configuration>
+
+  <property>
+    <name>yarn.resourcemanager.ha.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.connect.retry-interval.ms</name>
+    <value>5000</value>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.cluster-id</name>
+    <value>yarn-res-cluster</value>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.ha.rm-ids</name>
+    <value>rm1,rm2</value>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.hostname.rm1</name>
+    <value>rm1</value>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.webapp.address.rm1</name>
+    <value>rm1:8088</value>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.hostname.rm2</name>
+    <value>rm2</value>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.webapp.address.rm2</name>
+    <value>rm2:8088</value>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.zk-address</name>
+    <value>zk1:2181,zk2:2181,zk3:2181</value>
+  </property>
+
+</configuration>
+

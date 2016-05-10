@@ -1,0 +1,13 @@
+
+
+http://www.edureka.co/blog/top-50-hadoop-interview-questions-you-should-prepare-for-in-2016
+
+http://www.tutorialspoint.com/hadoop/hadoop_online_test.htm
+
+https://jaceklaskowski.gitbooks.io/mastering-apache-spark/content/spark-configuration.html
+https://www.quora.com/How-do-I-install-Apache-Spark-on-Yarn-Cluster
+
+
+http://insightdataengineering.com/blog/hadoopdevops/#install
+http://blog.insightdatalabs.com/spark-cluster-step-by-step/
+

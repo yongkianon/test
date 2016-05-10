@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<configuration>
+
+  <property>
+    <name>dfs.namenode.name.dir</name>
+    <value>file:/data/nn</value>
+  </property>
+
+  <property>
+    <name>dfs.datanode.data.dir</name>
+    <value>file:/data/dn</value>
+  </property>
+
+  <property>
+    <name>dfs.replication</name>
+    <value>2</value>
+  </property>
+
+  <property>
+    <name>dfs.namenode.num.checkpoints.retained</name>
+    <value>3</value>
+  </property>
+
+  <property>
+    <name>dfs.namenode.num.extra.edits.retained</name>
+    <value>10</value>
+  </property>
+
+  <property>
+    <name>dfs.permissions.enabled</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>dfs.nameservices</name>
+    <value>SHT</value>
+  </property>
+
+  <property>
+    <name>dfs.ha.namenodes.SHT</name>
+    <value>nn1,nn2</value>
+  </property>
+
+  <property>
+    <name>dfs.namenode.rpc-address.SHT.nn1</name>
+    <value>nn1:9000</value>
+  </property>
+  <property>
+    <name>dfs.namenode.rpc-address.SHT.nn2</name>
+    <value>nn2:9000</value>
+  </property>
+
+  <!-- rpc-address, servicerpc-address, http-address, https-address -->
+
+  <property>
+    <name>dfs.namenode.http-address.SHT.nn1</name>
+    <value>nn1:50070</value>
+  </property>
+  <property>
+    <name>dfs.namenode.http-address.SHT.nn2</name>
+    <value>nn2:50070</value>
+  </property>
+
+  <property>
+    <name>dfs.namenode.shared.edits.dir</name>
+    <value>qjournal://jn1:8485;jn2:8485;jn3:8485/SHT</value>
+  </property>
+
+  <property>
+    <name>dfs.client.failover.proxy.provider.SHT</name>
+    <value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
+  </property>
+
+  <property>
+    <name>dfs.ha.automatic-failover.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>dfs.ha.fencing.methods</name>
+    <value>sshfence</value>
+  </property>
+
+  <property>
+    <name>dfs.ha.fencing.ssh.private-key-files</name>
+    <value>/home/hadoop/.ssh/id_rsa</value>
+  </property>
+
+  <property>
+    <name>dfs.hosts.exclude</name>
+    <value>/etc/hadoop/dfs.hosts.exclude.txt</value>
+    <description>DFS exclude hosts</description>
+  </property>
+
+</configuration>
+

@@ -1,0 +1,110 @@
+#SSH to root user
+
+yum -y install bind-utils net-tools nmap ntp wget python
+
+#Should use centos7
+wget http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.4.0.0/hdp.repo -O /etc/yum.repos.d/hdp.repo
+yum -y install hadoop hadoop-hdfs hadoop-libhdfs hadoop-yarn hadoop-mapreduce hadoop-client openssl zookeeper-server
+
+#Setup JAVA, Scala, Spark in /opt
+
+cd /opt
+tar -zxvf scala-2.11.8.tgz
+tar -zxvf spark-1.6.1-bin-hadoop2.6.tgz
+tar -zxvf server-jre-8u92-linux-x64.tar.gz
+
+mv spark-1.6.1-bin-hadoop2.6  spark-1.6.1
+ln -s spark-1.6.1/   spark
+ln -s scala-2.11.8/  scala
+ln -s jdk1.8.0_92/   jdk1.8.0
+
+chown -R root:root /opt
+
+alternatives --install /usr/bin/scala    scala    /opt/scala/bin/scala    2
+alternatives --install /usr/bin/scalac   scalac   /opt/scala/bin/scalac   2
+alternatives --install /usr/bin/scaladoc scaladoc /opt/scala/bin/scaladoc 2
+alternatives --install /usr/bin/scalap   scalap   /opt/scala/bin/scalap   2
+
+alternatives --install /usr/bin/pyspark       pyspark       /opt/spark/bin/pyspark      2
+alternatives --install /usr/bin/spark-submit  spark-submit  /opt/spark/bin/spark-submit 2
+
+
+vi /etc/hosts
+192.168.1.11  nn1 rm1 nm1 jn1 zk1
+192.168.1.12  nn2 rm2 nm2 jn2 zk2
+192.168.1.13      dn1 nm3 jn3 zk3
+192.168.1.14      dn2 nm4 jn4 zk4
+192.168.1.15      dn3 nm5 jn5 zk5
+192.168.1.16      dn4 nm6 jn6 zk6
+
+
+
+mkdir -p /data/jn
+mkdir -p /data/nn
+-- mkdir -p /data/snn
+mkdir -p /data/dn
+mkdir -p /data/zk
+chown -R hadoop:hadoop /app /data
+
+
+vi /etc/security/limits.conf
+#Goto end of the file
+root - nofile 32768
+root - nproc  65536
+ *   - nofile 32768
+ *   - nproc  65536
+
+
+
+
+
+
+
+vi /etc/profile.d/hadoop.sh
+export SCALA_HOME=/opt/scala
+export JAVA_HOME=/opt/jdk1.8.0
+export PATH=$JAVA_HOME/bin:$PATH
+
+
+
+#NTP and Firewall
+systemctl enable ntpd
+systemctl start  ntpd
+
+systemctl disable firewalld
+systemctl mask    firewalld
+systemctl stop    firewalld
+
+
+#SELinux
+vi /etc/sysconfig/selinux
+SELINUX=permissive
+
+reboot
+
+
+
+
+
+
+
+
+#SSH to hadoop
+
+#setup password-less login
+ssh-keygen -t rsa
+cd ~/.ssh/
+cat id_rsa.pub >> authorized_keys
+
+
+vi ${/home/zookeeper}/conf/zoo.cfg
+dataDir=/data/zk
+Server.1=zk1:2888:3888
+Server.2=zk2:2888:3888
+Server.3=zk3:2888:3888
+
+[zk1] echo 1 > /data/zk/myid
+[zk2] echo 2 > /data/zk/myid
+[zk3] echo 3 > /data/zk/myid
+
+

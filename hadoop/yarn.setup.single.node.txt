@@ -1,13 +1,14 @@
 
+https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/SecureMode.html
 useradd hadoop
-# useradd -g hadoop hdfs
-# useradd -g hadoop mapred
-# useradd -g hadoop yarn
+useradd -g hadoop hdfs
+useradd -g hadoop mapred
+useradd -g hadoop yarn
 
 
-mkdir -p /data/nn/fsimage
-mkdir -p /data/snn/fsimage
-mkdir -p /data/dn/hdfs
+mkdir -p /data/nn
+mkdir -p /data/snn
+mkdir -p /data/dn
 
 mkdir -p /app/logs/yarn
 
