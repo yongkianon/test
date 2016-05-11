@@ -4,17 +4,14 @@ yum -y install bind-utils net-tools nmap ntp wget python
 
 #Should use centos7
 wget http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.4.0.0/hdp.repo -O /etc/yum.repos.d/hdp.repo
-yum -y install hadoop hadoop-hdfs hadoop-libhdfs hadoop-yarn hadoop-mapreduce hadoop-client openssl zookeeper-server
+yum -y install hadoop hadoop-hdfs hadoop-libhdfs hadoop-yarn hadoop-mapreduce hadoop-client openssl zookeeper-server spark
 
-#Setup JAVA, Scala, Spark in /opt
+#Setup JAVA, Scala in /opt
 
 cd /opt
 tar -zxvf scala-2.11.8.tgz
-tar -zxvf spark-1.6.1-bin-hadoop2.6.tgz
 tar -zxvf server-jre-8u92-linux-x64.tar.gz
 
-mv spark-1.6.1-bin-hadoop2.6  spark-1.6.1
-ln -s spark-1.6.1/   spark
 ln -s scala-2.11.8/  scala
 ln -s jdk1.8.0_92/   jdk1.8.0
 
@@ -38,7 +35,6 @@ vi /etc/hosts
 
 mkdir -p /data/jn
 mkdir -p /data/nn
-mkdir -p /data/snn
 mkdir -p /data/dn
 mkdir -p /data/zk
 chown -R hadoop:hadoop /app /data /etc/hadoop /etc/zookeeper
@@ -77,7 +73,7 @@ export   YARN_LOG_DIR=/app/logs
 export ZKPR_HOME=/usr/hdp/current/zookeeper-server
 
 export SCALA_HOME=/opt/scala
-export SPARK_HOME=/opt/spark
+export SPARK_HOME=/usr/hdp/current/spark-thriftserver
 export JAVA_HOME=/opt/jdk1.8.0
 export PATH=$JAVA_HOME/bin:$SPARK_HOME/bin:$PATH
 
@@ -129,10 +125,12 @@ server.3=zk3:2888:3888
 
 
 
+#Duplicate VM
 hostnamectl status
 hostnamectl set-hostname node1
   systemctl restart systemd-hostnamed
 
+vi /etc/sysconfig/network-scripts/ifcfg-eno16777736
 
 
 ### You need 3 nodes ready by now ###
@@ -155,19 +153,38 @@ $HADOOP_HOME/sbin/hadoop-daemon.sh start namenode
 $HADOOP_HOME/sbin/hadoop-daemon.sh start namenode
 
 6. Start ZooKeeper service in ALL nodes
+   Check Status, 1 leader and others follower
 /usr/hdp/current/zookeeper-server/bin/zkServer.sh start
 /usr/hdp/current/zookeeper-server/bin/zkServer.sh status
 
 7. Start the DataNode daemon in ALL DataNode machines
 $HADOOP_HOME/sbin/hadoop-daemon.sh start datanode
 
-8. Format and then start ZooKeeper failover controller in ACTIVE and STANDBY NameNode
+8. Format ZooKeeper ZNODE
 /usr/bin/hdfs zkfc -formatZK
+
+9. Start ZooKeeper failover controller in ACTIVE and STANDBY NameNode
 $HADOOP_HOME/sbin/hadoop-daemon.sh start zkfc
 
-9. Check status of each NameNode
+10. Check status of each NameNode
 /usr/bin/hdfs haadmin -getServiceState nn1
 /usr/bin/hdfs haadmin -getServiceState nn2
+
+
+# YARN Cluster
+
+1. Start YARN Services
+$YARN_HOME/sbin/yarn-daemon.sh start resourcemanager
+$YARN_HOME/sbin/yarn-daemon.sh start nodemanager
+
+2. Web Console
+RM: http://192.168.1.11:8088
+NM: http://192.168.1.11:8042
+NN: http://192.168.1.11:50070
+
+
+
+
 
 ## TESTING
 /usr/bin/hdfs haadmin -transitionToStandby nn2
