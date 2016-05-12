@@ -136,7 +136,7 @@ vi /etc/sysconfig/network-scripts/ifcfg-eno16777736
 ### You need 3 nodes ready by now ###
 
 Setup HDP HA Cluster
-1. Start the JournalNode daemon in ALL nodes
+1. Start the JournalNode daemon in ALL(jn1,jn2,jn3) nodes
 $HADOOP_HOME/sbin/hadoop-daemon.sh start journalnode
 
 2. Format ACTIVE NameNode (nn1), folder dfs.namenode.name.dir
@@ -152,18 +152,18 @@ $HADOOP_HOME/sbin/hadoop-daemon.sh start namenode
 5. Start NameNode daemon in STANDBY NameNode (nn2)
 $HADOOP_HOME/sbin/hadoop-daemon.sh start namenode
 
-6. Start ZooKeeper service in ALL nodes
+6. Start ZooKeeper service in ALL(zk1,zk2,zk3) nodes
    Check Status, 1 leader and others follower
 /usr/hdp/current/zookeeper-server/bin/zkServer.sh start
 /usr/hdp/current/zookeeper-server/bin/zkServer.sh status
 
-7. Start the DataNode daemon in ALL DataNode machines
+7. Start the DataNode daemon in ALL(dn1,dn2,dn3,dn4) DataNode machines
 $HADOOP_HOME/sbin/hadoop-daemon.sh start datanode
 
 8. Format ZooKeeper ZNODE
 /usr/bin/hdfs zkfc -formatZK
 
-9. Start ZooKeeper failover controller in ACTIVE and STANDBY NameNode
+9. Start ZooKeeper failover controller in ACTIVE(nn1) and STANDBY(nn2) NameNode
 $HADOOP_HOME/sbin/hadoop-daemon.sh start zkfc
 
 10. Check status of each NameNode
@@ -173,11 +173,13 @@ $HADOOP_HOME/sbin/hadoop-daemon.sh start zkfc
 
 # YARN Cluster
 
-1. Start YARN Services
+1. Start YARN RM Services in rm1,rm2
 $YARN_HOME/sbin/yarn-daemon.sh start resourcemanager
+
+2. Start YARN NM Services in ALL NM (nm1,nm2,nm3,nm4,nm5,nm6)
 $YARN_HOME/sbin/yarn-daemon.sh start nodemanager
 
-2. Web Console
+3. Web Console UI
 RM: http://192.168.1.11:8088
 NM: http://192.168.1.11:8042
 NN: http://192.168.1.11:50070

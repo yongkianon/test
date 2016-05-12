@@ -1,19 +1,40 @@
 
-# mount ISO    as repo
+# mount ISO as repo
+vi /etc/yum.repos.d/cdrom.repo
+[cdrom]
+name=cdrom
+baseurl=file:///mnt/cdrom
+enabled=1
+
 # mount folder as repo
+vi /etc/yum.repos.d/local.repo
+[local]
+name=Cluster Repo
+baseurl=file:///home/HA.RHEL6.5/
+enabled=1
+gpgcheck=0
 
 
-yum    update <package> <kernel>
-yum -y update <package> <kernel>
+Replace OS with rhel or centos
+OSRELEASE  with 5, 6, or 7, for 5.x, 6.x, or 7.x versions
 
-# yum download without installing
+vi /etc/yum.repos.d/nginx.repo
+[nginx]
+name=nginx
+baseurl=http://nginx.org/packages/OS/OSRELEASE/$basearch/
+gpgcheck=0
+enabled=1
+
+
+          rpm --import  nginx_signing.key
+yumdownloader --resolve nginx
+rpm -ivh *rpm
+
+
+yum update <package>
+
+#download RPMs without installing
 yum install yum-utils
-yumdownloader <package>
-
-
-# check kernel version
-uname -r
-
-
-
+yumdownloader --resolve <package>
+yum install   --downloadonly --downloaddir=.  <package>
 
