@@ -1,0 +1,53 @@
+# To reset user count login
+pam_tally2 -u mm2madmin
+pam_tally2 -u mm2madmin -r
+
+
+
+
+Prevent root access to SSH
+==================================
+/etc/ssh/sshd_config
+PermitRootLogin no
+
+SSH Session timeout :
+==================================
+ClientAliveInterval 600
+ClientAliveCountMax 0
+
+Password Expiry :
+==================================
+
+/etc/login.defs
+
+PASS_MAX_DAYS   99999
+PASS_MIN_DAYS   0
+PASS_WARN_AGE   7
+
+# chage -M 60 joe
+
+ewpadm
+
+apt install libpam-cracklib
+
+Password Strength :
+==================================
+/etc/pam.d/system-auth
+
+password required pam_cracklib.so minlen=8 lcredit=-1 ucredit=-1 dcredit=-2 ocredit=-1
+
+the password have to be at least 8 characters of which at least 1 lower-case, 1 upper-case, 2 digits and 1 other
+
+pam_tally2 Expiry :
+==================================
+
+/etc/pam.d/password-auth configuration file to configure login attempts accesses.
+
+auth        required      pam_tally2.so  file=/var/log/tallylog deny=3 even_deny_root unlock_time=1200
+account     required      pam_tally2.so
+
+file=/var/log/tallylog - Default log file is used to keep login counts.
+deny=3 - Deny access after 3 attempts and lock down user.
+even_deny_root - Policy is also apply to root user.
+unlock_time=1200 - Account will be locked till 20 Min. (remove this parameters if you want to lock down permanently till manually unlock.)
+

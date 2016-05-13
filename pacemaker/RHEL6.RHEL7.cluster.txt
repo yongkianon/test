@@ -1,0 +1,327 @@
+RHEL6: yum install pacemaker pcs resource-agents cman ccs
+RHEL7: yum install pacemaker pcs resource-agents
+
+The supported stack on RHEL6 is based on CMAN.
+The supported stack on RHEL7/U14 is based on Corosync 2.
+
+Keepalived is a lot simpler to set up and use than Corosync+Pacemaker.
+If you only need to move a VIP around between servers, I'd recommend keepalived.
+If you are doing more complex tasks like starting and stopping services, mounting filesystems, and other tasks, I'd recommend Corosync+Pacemaker.
+
+
+
+
+Before setup clustering, make sure the following
+
+1. NetworkManager will need to be off permanent if system running in runlevel 5
+chkconfig NetworkManager off
+
+2. create hostname in ALL cluster nodes.
+vi /etc/hosts
+192.168.1.101  node1.alltrix.biz  node1
+192.168.1.102  node2.alltrix.biz  node2
+
+3. OS firewall new rules for CMAN, DLM, RICCI, LUCI. can refer to
+https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Cluster_Administration/s2-iptables_firewall-CA.html
+
+iptables -I INPUT -m state --state NEW -m multiport -p udp -s 192.168.1.0/24 -d 192.168.1.0/24 --dports 5404,5405 -j ACCEPT
+iptables -I INPUT -m addrtype --dst-type MULTICAST -m state --state NEW -m multiport -p udp -s 192.168.1.0/24 --dports 5404,5405 -j ACCEPT
+iptables -I INPUT -m state --state NEW -p tcp -s 192.168.1.0/24 -d 192.168.1.0/24 --dport 21064 -j ACCEPT
+iptables -I INPUT -m state --state NEW -p tcp -s 192.168.1.0/24 -d 192.168.1.0/24 --dport 11111 -j ACCEPT
+iptables -I INPUT -m state --state NEW -p tcp -s 192.168.1.0/24 -d 192.168.1.0/24 --dport 16851 -j ACCEPT
+iptables -I INPUT -m state --state NEW -p tcp -s 192.168.1.0/24 -d 192.168.1.0/24 --dport  8084 -j ACCEPT
+iptables -I INPUT -p igmp -j ACCEPT
+service iptables save ; service iptables restart
+
+List of software and their port no (same as above)
+CMAN (Cluster Manager)
+iptables -I INPUT -m state --state NEW -m multiport -p udp -s 192.168.1.0/24 -d 192.168.1.0/24 --dports 5404,5405 -j ACCEPT
+iptables -I INPUT -m addrtype --dst-type MULTICAST -m state --state NEW -m multiport -p udp -s 192.168.1.0/24 --dports 5404,5405 -j ACCEPT
+
+dlm (Distributed Lock Manager)
+iptables -I INPUT -m state --state NEW -p tcp -s 192.168.1.0/24 -d 192.168.1.0/24 --dport 21064 -j ACCEPT
+
+ricci (part of Conga remote agent)
+iptables -I INPUT -m state --state NEW -p tcp -s 192.168.1.0/24 -d 192.168.1.0/24 --dport 11111 -j ACCEPT
+
+modclusterd (part of Conga remote agent)
+iptables -I INPUT -m state --state NEW -p tcp -s 192.168.1.0/24 -d 192.168.1.0/24 --dport 16851 -j ACCEPT
+
+luci (Conga User Interface server)
+iptables -I INPUT -m state --state NEW -p tcp -s 192.168.1.0/24 -d 192.168.1.0/24 --dport 8084 -j ACCEPT
+
+igmp (Internet Group Management Protocol)
+iptables -I INPUT -p igmp -j ACCEPT
+
+
+
+CentOS6
+Note that cluster name cannot exceed 15 characters (we will use 'pacemaker1')
+
+ccs -f /etc/cluster/cluster.conf --createcluster pacemaker1
+ccs -f /etc/cluster/cluster.conf --addnode node1
+ccs -f /etc/cluster/cluster.conf --addnode node2
+ccs -f /etc/cluster/cluster.conf --addfencedev pcmk agent=fence_pcmk
+ccs -f /etc/cluster/cluster.conf --addmethod pcmk-redirect node1
+ccs -f /etc/cluster/cluster.conf --addmethod pcmk-redirect node2
+ccs -f /etc/cluster/cluster.conf --addfenceinst pcmk node1 pcmk-redirect port=node1
+ccs -f /etc/cluster/cluster.conf --addfenceinst pcmk node2 pcmk-redirect port=node2
+
+AT Node 1, copy cluster.conf to Node 2
+scp -rp /etc/cluster/cluster.conf root@node2:/etc/cluster/cluster.conf
+
+vi /etc/sysconfig/cman
+CMAN_QUORUM_TIMEOUT=0
+
+chkconfig --level 345 cman      on
+chkconfig --level 345 pacemaker on
+
+chkconfig NetworkManager off
+service cman      start
+service pacemaker start
+
+Set Cluster Options
+pcs property set stonith-enabled=false
+pcs property set no-quorum-policy=ignore
+pcs resource defaults migration-threshold=1
+
+pcs status or crm_mon -1
+
+pcs resource create IP108 ocf:heartbeat:IPaddr2 \
+      ip=192.168.1.108 cidr_netmask=24          \
+      op monitor interval=30s
+
+
+pcs resource create demo  Dummy op monitor interval=30s
+
+pcs resource standards
+pcs resource providers
+pcs resource agents ocf:heartbeat
+
+
+
+
+yum install httpd
+
+pcs resource create HTTPD ocf:heartbeat:apache   \
+      configfile=/etc/httpd/conf/httpd.conf      \
+      statusurl="http://127.0.0.1/server-status" \
+      op monitor interval=1min
+
+pcs constraint colocation add HTTPD with IP88 INFINITY
+pcs constraint order IP88 then HTTPD
+
+pcs resource show IP108
+pcs resource show HTTPD
+
+
+
+
+# NOT working
+crm_resource --resource Alive --force-stop
+
+pcs cluster stop node1
+
+pcs resource  delete  Alive
+pcs resource disable  Alive
+pcs resource  enable  Alive
+
+pcs resource move  Alive
+pcs resource move  IP108 node2
+pcs resource clear HTTPD node2
+crm_resource --move --resource IP108 --node node2
+
+pcs resource op defaults timeout=240s
+
+
+
+
+
+
+
+pcs resource delete Tomcat8
+
+pcs resource create primitive Tomcat8 ocf:heartbeat:tomcat \
+  params \
+    java_home=/opt/jdk1.8.0    \
+    catalina_home=/home/tomcat \
+  op monitor depth="0" timeout="30s" interval="10s"
+
+pcs resource create Tomcat8 ocf:heartbeat:tomcat \
+    java_home=/opt/jdk1.8.0           \
+    catalina_base=/home/tomcat        \
+    catalina_home=/home/tomcat        \
+  op monitor timeout=30s interval=10s
+
+
+org.apache.catalina.util.SessionIdGeneratorBase.createSecureRandom
+Creation of SecureRandom instance for session ID generation using [SHA1PRNG] took [66,150] milliseconds.
+
+
+pcs command and property setting are in
+/var/lib/pacemaker/cib/cib.xml
+
+
+/etc/corosync/*
+
+
+
+
+
+
+
+
+
+
+
+CentOS SAN iSCSI
+yum install -y scsi-target-utils
+
+vi /etc/sysconfig/iptables
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 3260 -j ACCEPT
+
+# create a disk image
+mkdir /iscsi_disks
+dd if=/dev/zero of=/iscsi_disks/disk01.img count=0 bs=1 seek=1M
+
+vi /etc/tgt/targets.conf
+# naming rule : [ iqn.YYYY-MM.domain:any_name ]
+<target iqn.2015-05.biz.alltrix:san.target01>
+  # provided device as a iSCSI target
+  backing-store /iscsi_disks/disk01.img
+  # iSCSI Initiator IP address you allow to connect
+  initiator-address 192.168.1.211
+  incominguser iscsiadm alltriX168
+</target>
+
+service tgtd start
+tgtadm --mode target --op show
+
+Configuring the iSCSI Initiator
+
+yum -y install iscsi-initiator-utils
+
+– Configure the iqn name for the initiator:
+vi /etc/iscsi/initiatorname.iscsi
+InitiatorName=iqn.2015-05.biz.alltrix:san.initiator01
+InitiatorAlias=initiator01
+
+– Edit the iSCSI initiator configuration:
+vi /etc/iscsi/iscsid.conf
+# To manually startup the session set to "manual". The default is automatic.
+node.startup = automatic
+# To enable CHAP authentication
+node.session.auth.authmethod = CHAP
+# To set a CHAP username and password for initiator
+node.session.auth.username = iscsiadm
+node.session.auth.password = alltriX168
+
+– Start iSCSI initiator daemon:
+/etc/init.d/iscsi  start
+/etc/init.d/iscsid start
+
+– Discovering targets in our iSCSI server:
+iscsiadm --mode discovery -t sendtargets --portal 192.168.1.219
+iscsiadm --mode node --targetname iqn.2015-05.biz.alltrix:san.target01 --portal 192.168.1.219 --login
+iscsiadm --mode session --op show
+
+
+fdisk -l
+blkid /dev/sda1
+
+
+
+Cluster FileSystem - Global FileSystem 2
+yum install -y lvm2-cluster gfs2-utils
+service clvmd start
+
+pvcreate       /dev/sdc
+vgcreate vgsan /dev/sdc
+lvcreate -L 10G -n lvsan vgsan
+
+
+
+
+
+1. On one of the nodes, use fdisk to create a partition on the SAN device, and make sure to mark it as partition type 0x8e.
+Reboot both nodes to make sure the partitions are visible on both nodes, and verify this is the case before continuing.
+
+2. On both nodes, use yum install -y lvm2-cluster gfs2-utils to install cLVM and the GFS software.
+
+3. On both nodes, use service clvmd start to start the cLVM service and chkconfig clvmd on to enable it.
+
+4. On one node, use pvcreate /dev/sdc to mark the LVM partition on the SAN device as a physical volume.
+
+5. Use vgcreate -c y vgclus /dev/sdbc to create a cluster-enabled volume group.
+
+6. Use lvcreate -l 100%FREE -n lvclus vgclus to create a cluster-enabled volume with the name lvclus
+
+7. On both nodes, use lvs to verify that the cluster-enabled LVM volume has been created.
+
+8. mkfs.gfs2 -p lock_dlm -t pacemaker1:gfs -j 2 /dev/vgclus/lvclus
+
+This will format the clustered LVM volume as a GFS2 file system.
+The -p option tells mkfs to use the lock_dlm lock table.
+This instructs the file system to use a distributed lock manager so that file locks are synchronised to all nodes in the cluster.
+The option -t is equally important, because it specifies the name of your cluster, followed by the name of the GFS resource you want to create in the cluster. The option -j 2 tells mkfs to create two GFS journals; you'll need one for each node that accesses the GFS volume.
+
+9. On both nodes, mount the GFS2 file system temporarily on /mnt/gfs,
+  mount /dev/vgclus/lvclus   /mnt/gfs
+
+On both nodes, create some files on the file system.
+You'll notice that the files also appear immediately on the other nodes.
+
+10. Use mkdir /gfsvol to create a directory on which you can mount the GFS volume.
+
+11. Make the mount persistent by adding the following line to /etc/fstab:
+
+ /dev/vgclus/lvclus  /mnt/gfs  gfs2  _netdev  0  0
+
+12. Use chkconfig gfs2 on to enable the GFS2 service, which is needed to mount GFS2 volumes from /etc/fstab.
+
+
+
+
+
+
+vi /etc/httpd/conf.d/tomcat.conf
+RewriteEngine on
+RedirectMatch ^/$      /tomcat/
+RewriteRule   ^/yong$  /tomcat/   [R]
+
+ProxyRequests     Off
+ProxyPreserveHost On
+ProxyTimeout      600
+
+<Proxy balancer://tomcat>
+  BalancerMember http://192.168.1.85:8080/tomcat  loadfactor=1 route=tomcat1 keepalive=On
+  BalancerMember http://192.168.1.86:8080/tomcat  loadfactor=1 route=tomcat2 keepalive=On
+</Proxy>
+
+ProxyPass         /tomcat   balancer://tomcat  stickysession=JSESSIONID|jsessionid nofailover=Off
+ProxyPassReverse  /tomcat   balancer://tomcat
+
+ProxyPass         /tomcat1  http://192.168.1.85:8080/tomcat
+ProxyPassReverse  /tomcat1  http://192.168.1.85:8080/tomcat
+
+ProxyPass         /tomcat2  http://192.168.1.86:8080/tomcat
+ProxyPassReverse  /tomcat2  http://192.168.1.86:8080/tomcat
+
+<Location /balancer-manager>
+  SetHandler balancer-manager
+  Order Deny,Allow
+  Deny from all
+  Allow from 127.0.0.1
+  Allow from 192.168.1.0/24
+</Location>
+
+ExtendedStatus On
+
+<Location /server-status>
+  SetHandler server-status
+  Order Deny,Allow
+  Deny from all
+  Allow from 127.0.0.1
+  Allow from 192.168.1.0/24
+</Location>
+
