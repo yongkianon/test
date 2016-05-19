@@ -5,6 +5,7 @@ vi /etc/yum.repos.d/cdrom.repo
 name=cdrom
 baseurl=file:///mnt/cdrom
 enabled=1
+gpgcheck=1
 
 # mount folder as repo
 vi /etc/yum.repos.d/local.repo

@@ -1,0 +1,45 @@
+
+mkdir -p /mnt/cdrom
+mount -o loop /mnt/ISO/CentOS-7-x86_64-Minimal-1511.iso /mnt/cdrom
+
+
+# mount ISO as repo
+vi /etc/yum.repos.d/cdrom.repo
+[cdrom]
+name=cdrom
+baseurl=file:///mnt/cdrom
+enabled=1
+gpgcheck=1
+
+
+tar -jxvf xcat-core-2.11.1-linux.tar.bz2
+tar -jxvf xcat-dep-2.11.1.tar.bz2
+
+
+          /home/xcat-core/mklocalrepo.sh
+/home/xcat-dep/rh7/x86_64/mklocalrepo.sh
+
+
+yum clean   all
+yum install xCAT
+
+
+
+cd /mnt/ISO
+copycds -n centos7 CentOS-7-x86_64-Minimal-1511.iso
+genimage -i eth0 -n e1000,e1000e,bnx2,tg3 -o centos7 -p compute
+packimage -o centos7 -p compute -a x86_64
+
+
+chtab node=compute noderes.netboot=pxe noderes.tftpserver=192.168.1.30 noderes.nfsserver=192.168.1.30 noderes.installnic=eth0 noderes.primarynic=eth0
+chtab node=compute nodetype.os=centos7 nodetype.arch=x86_64 nodetype.profile=compute nodetype.nodetype=osi
+chtab key=system passwd.username=root passwd.password=alltriX168
+chtab netname=internal networks.dynamicrange="192.168.1.31-192.168.1.39"
+
+
+nodeadd n01 groups=compute,all mac.interface=eth0 hosts.ip=192.168.1.31 mac.mac=22:98:23:82:30:31
+nodeadd n02 groups=compute,all mac.interface=eth0 hosts.ip=192.168.1.32 mac.mac=22:98:23:82:30:32
+
+tabdump site
+nodeset n01 osimage=centos7
+
