@@ -186,6 +186,14 @@ NN: http://192.168.1.11:50070
 
 
 
+/usr/bin/hdfs dfs -ls  /
+/usr/bin/hdfs dfs -put hadoop-hadoop-journalnode-node2.log /test.txt
+
+/usr/bin/hdfs dfs -mkdir /TEMP
+/usr/bin/hdfs dfs -rm    /test.txt
+/usr/bin/hdfs dfs -mv    /test.txt /TEMP
+
+
 
 
 ## TESTING
