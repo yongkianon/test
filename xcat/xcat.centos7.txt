@@ -1,6 +1,6 @@
 
 mkdir -p /mnt/cdrom
-mount -o loop /mnt/ISO/CentOS-7-x86_64-Minimal-1511.iso /mnt/cdrom
+mount -o loop /mnt/ISO/CentOS-7-x86_64-Everything-1511.iso /mnt/cdrom
 
 
 # mount ISO as repo
@@ -21,25 +21,74 @@ tar -jxvf xcat-dep-2.11.1.tar.bz2
 
 
 yum clean   all
+rpm --import   /mnt/cdrom/RPM-GPG-KEY-CentOS-*
 yum install xCAT
 
 
 
-cd /mnt/ISO
-copycds -n centos7 CentOS-7-x86_64-Minimal-1511.iso
-genimage -i eth0 -n e1000,e1000e,bnx2,tg3 -o centos7 -p compute
-packimage -o centos7 -p compute -a x86_64
+copycds -n centos7.2 /mnt/ISO/CentOS-7-x86_64-Everything-1511.iso
+tabdump osimage
 
 
-chtab node=compute noderes.netboot=pxe noderes.tftpserver=192.168.1.30 noderes.nfsserver=192.168.1.30 noderes.installnic=eth0 noderes.primarynic=eth0
-chtab node=compute nodetype.os=centos7 nodetype.arch=x86_64 nodetype.profile=compute nodetype.nodetype=osi
+
+chtab node=compute noderes.netboot=pxe noderes.tftpserver=192.168.1.20 noderes.nfsserver=192.168.1.20 noderes.installnic=eth0 noderes.primarynic=eth0
+chtab node=compute nodetype.os=centos7.2 nodetype.arch=x86_64 nodetype.profile=compute nodetype.nodetype=osi
 chtab key=system passwd.username=root passwd.password=alltriX168
-chtab netname=internal networks.dynamicrange="192.168.1.31-192.168.1.39"
+-- chtab netname=internal networks.dynamicrange="192.168.1.31-192.168.1.39"
 
 
-nodeadd n01 groups=compute,all mac.interface=eth0 hosts.ip=192.168.1.31 mac.mac=22:98:23:82:30:31
-nodeadd n02 groups=compute,all mac.interface=eth0 hosts.ip=192.168.1.32 mac.mac=22:98:23:82:30:32
+nodeadd nn001 groups=compute,all mac.interface=eth0 hosts.ip=192.168.1.41 mac.mac=22:98:23:82:40:41
+nodeadd nn002 groups=compute,all mac.interface=eth0 hosts.ip=192.168.1.42 mac.mac=22:98:23:82:40:42
+
+
+9. Create a network boot root image
+# mknb x86_64
+
+
+11. Build the network table first
+# makenetworks
+
+12. Update dns and dhcp config
+# vi /etc/hosts
+192.168.1.20  xcat.u.local  xcat   xcatmaster.u.local  xcatmaster
+192.168.1.41 nn001.alltrix.local  nn001
+192.168.1.42 nn002.alltrix.local  nn002
+
+# makedns
+# makedhcp -n
+# makedhcp -a
+
+
+mkdir -p /install/post/otherpkgs/centos7.2/x86_64
+  cd     /install/post/otherpkgs/centos7.2/x86_64
+
+wget http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.4.0.0/hdp.repo -O /etc/yum.repos.d/hdp.repo
+yumdownloader --resolve hadoop hadoop-hdfs hadoop-libhdfs hadoop-yarn hadoop-mapreduce hadoop-client zookeeper-server spark
+
+chdef -t osimage -o centos7.2-x86_64-install-compute pkglist=/opt/xcat/share/xcat/install/centos/compute.centos7.pkglist,/opt/xcat/share/xcat/install/centos/compute.centos7.hadoop.pkglist
+chdef -t osimage -o centos7.2-x86_64-install-compute otherpkglist=/opt/xcat/share/xcat/install/centos/compute.centos7.hadoop.pkglist
+
+vi /opt/xcat/share/xcat/install/centos/compute.centos7.hadoop.pkglist
+hadoop
+hadoop-hdfs
+hadoop-libhdfs
+hadoop-yarn
+hadoop-mapreduce
+hadoop-client
+zookeeper-server
+spark
+
+
+
+
+14. Build node
+# nodeset nn001 osimage=centos7.2-x86_64-install-compute
+# nodeset nn001 boot
+# lsdef -t osimage -o centos7.2-x86_64-install-compute
+# more  /tftpboot/pxelinux.cfg/nn001
+# mount xcat:/install/final   /mnt/nfs
+
 
 tabdump site
-nodeset n01 osimage=centos7
+nodeset nn001 osimage=centos7.2
 

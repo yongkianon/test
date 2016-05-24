@@ -4,9 +4,14 @@
 dd if=proxmox-ve_4.2-725d76f0-28.iso of=/dev/disk2 bs=1M
 
 
+diskutil list
+
+
 #Mac ISO -> USB
 
 hdiutil convert -format UDRW -o pve-usb.img proxmox-ve_4.2-725d76f0-28.iso
 sudo dd if=pve-usb.img.dmg of=/dev/rdisk2
 
+# CentOS7
+time sudo dd if=CentOS72.1511.img.dmg of=/dev/rdisk2 bs=1M
 
