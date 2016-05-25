@@ -13,5 +13,7 @@ hdiutil convert -format UDRW -o pve-usb.img proxmox-ve_4.2-725d76f0-28.iso
 sudo dd if=pve-usb.img.dmg of=/dev/rdisk2
 
 # CentOS7
-time sudo dd if=CentOS72.1511.img.dmg of=/dev/rdisk2 bs=1M
+hdiutil convert -format UDRW -o  CentOS72.1511.img  CentOS-7-x86_64-Everything-1511.iso
+diskutil list
+time sudo dd if=CentOS72.1511.img.dmg of=/dev/disk2 bs=1m
 
