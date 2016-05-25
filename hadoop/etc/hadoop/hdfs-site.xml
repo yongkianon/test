@@ -10,7 +10,7 @@
 
   <property>
     <name>dfs.datanode.data.dir</name>
-    <value>file:/data/dn</value>
+    <value>/data/01,/data/02,/data/03,/data/04,/data/05,/data/06,/data/07,/data/08</value>
   </property>
 
   <property>
@@ -40,32 +40,32 @@
 
   <property>
     <name>dfs.ha.namenodes.SHT</name>
-    <value>nn1,nn2</value>
+    <value>nn01,nn02</value>
   </property>
 
   <property>
-    <name>dfs.namenode.rpc-address.SHT.nn1</name>
-    <value>nn1:9000</value>
+    <name>dfs.namenode.rpc-address.SHT.nn01</name>
+    <value>nn01:9000</value>
   </property>
   <property>
-    <name>dfs.namenode.rpc-address.SHT.nn2</name>
-    <value>nn2:9000</value>
+    <name>dfs.namenode.rpc-address.SHT.nn02</name>
+    <value>nn02:9000</value>
   </property>
 
   <!-- rpc-address, servicerpc-address, http-address, https-address -->
 
   <property>
-    <name>dfs.namenode.http-address.SHT.nn1</name>
-    <value>nn1:50070</value>
+    <name>dfs.namenode.http-address.SHT.nn01</name>
+    <value>nn01:50070</value>
   </property>
   <property>
-    <name>dfs.namenode.http-address.SHT.nn2</name>
-    <value>nn2:50070</value>
+    <name>dfs.namenode.http-address.SHT.nn02</name>
+    <value>nn02:50070</value>
   </property>
 
   <property>
     <name>dfs.namenode.shared.edits.dir</name>
-    <value>qjournal://jn1:8485;jn2:8485;jn3:8485/SHT</value>
+    <value>qjournal://jn01:8485;jn02:8485;jn03:8485/SHT</value>
   </property>
 
   <property>

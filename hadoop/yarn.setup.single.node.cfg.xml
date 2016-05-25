@@ -26,12 +26,12 @@
 
     <property>
       <name>dfs.namenode.name.dir</name>
-      <value>file:/data/nn/fsimage</value>
+      <value>file:/data/nn</value>
     </property>
 
     <property>
       <name>dfs.namenode.checkpoint.dir</name>
-      <value>file:/data/snn/fsimage</value>
+      <value>file:/data/snn</value>
     </property>
 
     <property>
@@ -41,7 +41,7 @@
 
     <property>
       <name>dfs.datanode.data.dir</name>
-      <value>file:/data/dn/hdfs</value>
+      <value>file:/data/dn</value>
     </property>
 
   </configuration>
