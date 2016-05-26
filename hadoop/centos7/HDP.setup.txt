@@ -1,6 +1,6 @@
 #SSH to root user
 
-yum -y install bind-utils net-tools nmap ntp wget python
+yum -y install bind-utils net-tools nmap ntp wget python whois wireshark
 
 #Should use centos7
 wget http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.4.0.0/hdp.repo -O /etc/yum.repos.d/hdp.repo
