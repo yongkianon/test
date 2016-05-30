@@ -1,4 +1,24 @@
 
+vi /etc/security/limits.conf
+root - nofile 32768
+root - nproc  65536
+ *   - nofile 32768
+ *   - nproc  65536
+
+vi /etc/sysconfig/selinux
+SELINUX=permissive
+
+systemctl disable firewalld
+systemctl stop    firewalld
+
+
+virsh net-destroy   default
+virsh net-autostart default --disable
+virsh net-undefine  default
+systemctl disable libvirtd.service
+systemctl stop    libvirtd.service
+
+
 mkdir -p /mnt/cdrom
 mount -o loop /mnt/ISO/CentOS-7-x86_64-Everything-1511.iso /mnt/cdrom
 
@@ -9,7 +29,7 @@ vi /etc/yum.repos.d/cdrom.repo
 name=cdrom
 baseurl=file:///mnt/cdrom
 enabled=1
-gpgcheck=1
+gpgcheck=0
 
 
 tar -jxvf xcat-core-2.11.1-linux.tar.bz2
@@ -30,15 +50,35 @@ copycds -n centos7.2 /mnt/ISO/CentOS-7-x86_64-Everything-1511.iso
 tabdump osimage
 
 
+#tabedit site
 
-chtab node=compute noderes.netboot=pxe noderes.tftpserver=192.168.1.20 noderes.nfsserver=192.168.1.20 noderes.installnic=eth0 noderes.primarynic=eth0
+"domain","alltrix.local"
+"keyboard","us"
+"master","192.168.1.100",,
+"nameservers","192.168.1.100",,
+
+"consoleondemand","no",,
+"forwarders","8.8.8.8,8.8.4.4",,
+"timezone","Asia/Kuala_Lumpur",,
+
+
+
+
+chtab node=compute noderes.netboot=pxe noderes.tftpserver=192.168.1.100 noderes.nfsserver=192.168.1.100 noderes.installnic=eth0 noderes.primarynic=eth0
 chtab node=compute nodetype.os=centos7.2 nodetype.arch=x86_64 nodetype.profile=compute nodetype.nodetype=osi
-chtab key=system passwd.username=root passwd.password=alltriX168
+chtab key=system passwd.username=root passwd.password=Huawei12#$
 -- chtab netname=internal networks.dynamicrange="192.168.1.31-192.168.1.39"
 
 
-nodeadd nn001 groups=compute,all mac.interface=eth0 hosts.ip=192.168.1.41 mac.mac=22:98:23:82:40:41
-nodeadd nn002 groups=compute,all mac.interface=eth0 hosts.ip=192.168.1.42 mac.mac=22:98:23:82:40:42
+nodeadd node1 groups=compute,all mac.interface=eth0 hosts.ip=192.168.1.139 mac.mac=22:98:23:82:40:41
+
+
+tabdump nodelist
+tabdump nodehm
+tabdump mac
+tabdump passwd
+tabdump osimage
+
 
 
 9. Create a network boot root image
@@ -50,9 +90,9 @@ nodeadd nn002 groups=compute,all mac.interface=eth0 hosts.ip=192.168.1.42 mac.ma
 
 12. Update dns and dhcp config
 # vi /etc/hosts
-192.168.1.20  xcat.u.local  xcat   xcatmaster.u.local  xcatmaster
-192.168.1.41 nn001.alltrix.local  nn001
-192.168.1.42 nn002.alltrix.local  nn002
+192.168.1.100 xcatmaster.alltrix.local  xcatmaster
+192.168.1.41       node1.alltrix.local  node1
+
 
 # makedns
 # makedhcp -n
@@ -68,6 +108,38 @@ yumdownloader --resolve hadoop hadoop-hdfs hadoop-libhdfs hadoop-yarn hadoop-map
 chdef -t osimage -o centos7.2-x86_64-install-compute pkglist=/opt/xcat/share/xcat/install/centos/compute.centos7.pkglist,/opt/xcat/share/xcat/install/centos/compute.centos7.hadoop.pkglist
 chdef -t osimage -o centos7.2-x86_64-install-compute otherpkglist=/opt/xcat/share/xcat/install/centos/compute.centos7.hadoop.pkglist
 
+
+chdef -t osimage -o centos7.2-x86_64-install-compute pkglist=/opt/xcat/share/xcat/install/centos/compute.centos7.pkglist
+chdef -t osimage -o centos7.2-x86_64-install-compute otherpkglist=
+
+
+
+vi /opt/xcat/share/xcat/install/centos/compute.centos7.pkglist
+@^graphical-server-environment
+@base
+@compat-libraries
+@core
+@desktop-debugging
+@development
+@dial-up
+@fonts
+@gnome-desktop
+@guest-agents
+@guest-desktop-agents
+@input-methods
+@internet-browser
+@multimedia
+@print-client
+@x11
+chrony
+-biosdevname
+
+
+
+
+
+
+
 vi /opt/xcat/share/xcat/install/centos/compute.centos7.hadoop.pkglist
 hadoop
 hadoop-hdfs
@@ -82,13 +154,19 @@ spark
 
 
 14. Build node
-# nodeset nn001 osimage=centos7.2-x86_64-install-compute
-# nodeset nn001 boot
+# nodeset node1 osimage=centos7.2-x86_64-install-compute
+# nodeset node1 boot
 # lsdef -t osimage -o centos7.2-x86_64-install-compute
-# more  /tftpboot/pxelinux.cfg/nn001
+# more  /tftpboot/pxelinux.cfg/node1
 # mount xcat:/install/final   /mnt/nfs
 
 
 tabdump site
-nodeset nn001 osimage=centos7.2
+nodeset node1 osimage=centos7.2
+
+systemctl set-default graphical.target
+
+OLD WAY
+vi /etc/inittab
+id:5:initdefault:
 
