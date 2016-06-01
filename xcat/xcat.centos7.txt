@@ -72,6 +72,26 @@ chtab key=system passwd.username=root passwd.password=Huawei12#$
 
 nodeadd node1 groups=compute,all mac.interface=eth0 hosts.ip=192.168.1.139 mac.mac=22:98:23:82:40:41
 
+nodeadd KPGNSYSNN01 groups=compute,all mac.interface=eth0 hosts.ip=192.168.1.139 mac.mac=38:4C:4F:F8:33:5E
+nodeadd KPGNSYSLN01 groups=compute,all mac.interface=eth0 hosts.ip=192.168.1.140 mac.mac=38:4C:4F:F8:33:76
+nodeadd KPGNSYSDN01 groups=compute,all mac.interface=eth0 hosts.ip=192.168.1.141 mac.mac=38:4C:4F:F8:33:46
+nodeadd KPGNSYSDN02 groups=compute,all mac.interface=eth0 hosts.ip=192.168.1.142 mac.mac=38:4C:4F:F8:33:56
+nodeadd KPGNSYSDN03 groups=compute,all mac.interface=eth0 hosts.ip=192.168.1.143 mac.mac=38:4C:4F:F8:33:52
+nodeadd KPGNSYSDN04 groups=compute,all mac.interface=eth0 hosts.ip=192.168.1.144 mac.mac=38:4C:4F:F8:33:6E
+
+
+nodeset KPGNSYSNN01 osimage=centos7.2-x86_64-install-compute
+nodeset KPGNSYSLN01 osimage=centos7.2-x86_64-install-compute
+
+nodeset KPGNSYSDN03 osimage=centos7.2-x86_64-install-compute
+nodeset KPGNSYSDN04 osimage=centos7.2-x86_64-install-compute
+
+
+nodeset KPGNSYSNN01 boot
+
+
+
+
 
 tabdump nodelist
 tabdump nodehm

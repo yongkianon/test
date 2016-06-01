@@ -160,13 +160,15 @@ $HADOOP_HOME/sbin/hadoop-daemon.sh start namenode
 7. Start the DataNode daemon in ALL(dn1,dn2,dn3,dn4) DataNode machines
 $HADOOP_HOME/sbin/hadoop-daemon.sh start datanode
 
-8. Format ZooKeeper ZNODE
+8. Format ZooKeeper ZNODE (either in node nn1 or nn2)
 /usr/bin/hdfs zkfc -formatZK
 
 9. Start ZooKeeper failover controller in ACTIVE(nn1) and STANDBY(nn2) NameNode
 $HADOOP_HOME/sbin/hadoop-daemon.sh start zkfc
 
-10. Check status of each NameNode
+10. If ZKFC could not start, execute formatZK again, then start ZKFC again.
+
+11. Check status of each NameNode
 /usr/bin/hdfs haadmin -getServiceState nn1
 /usr/bin/hdfs haadmin -getServiceState nn2
 
