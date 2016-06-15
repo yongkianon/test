@@ -11,7 +11,7 @@ SELINUX=permissive
 systemctl disable firewalld
 systemctl stop    firewalld
 
-
+# Disable virbr in RHEL/CentOS
 virsh net-destroy   default
 virsh net-autostart default --disable
 virsh net-undefine  default
