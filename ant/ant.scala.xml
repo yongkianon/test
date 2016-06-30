@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+
+<project name="scala" default="compile" basedir=".">
+
+  <property file="ant.properties"/>
+
+  <property name="app" value="${app.name}"/>
+  <property name="name" value="${app.name}"/>
+  <property name="version" value="${jdk.version}"/>
+
+  <property name="SCALA_HOME" value="/opt/scala"/>
+
+  <target name="prepare">
+    <mkdir dir="classes"/>
+  </target>
+
+  <macrodef name="scalac">
+    <attribute name="class" default="src/main/scala/*.scala"/>
+    <attribute name="output" default="classes"/>
+    <attribute name="sourcepath" default="src"/>
+    <sequential>
+      <exec executable="${SCALA_HOME}\bin\scalac">
+        <arg value="-d"/>
+        <arg value="@{output}"/>
+        <arg value="-sourcepath"/>
+        <arg value="@{sourcepath}"/>
+        <arg value="@{class}"/>
+      </exec>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="scala">
+    <attribute name="class"/>
+    <attribute name="classpath" default="classes"/>
+
+    <sequential>
+      <exec executable="${SCALA_HOME}/bin/scalac">
+        <arg value="-classpath"/>
+        <arg value="@{classpath}"/>
+        <arg value="@{class}"/>
+        <!--<arg value="-classpath build "/>-->
+        <!--<arg value="@{class}"/>-->
+      </exec>
+    </sequential>
+
+  </macrodef>
+
+  <target name="compile" depends="prepare">
+    <!-- you need 1 line (below) per scala source directory,
+    including one for each package directory. -->
+
+    <scalac class="src/com/scala/*.scala"/>
+    <scalac class="src/com/scala/sub/*.scala"/>
+  </target>
+
+  <target name="run">
+    <scala class="com.scala.Main"/>
+  </target>
+
+  <target name="build">
+    <antcall target="compile"/>
+    <antcall target="run"/>
+  </target>
+
+</project>
+
