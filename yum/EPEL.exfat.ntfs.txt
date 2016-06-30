@@ -1,0 +1,19 @@
+
+
+#download RPMs without installing
+yum install yum-utils
+yumdownloader --resolve <package>
+yum install   --downloadonly --downloaddir=.  <package>
+
+
+# mount NTFS
+yum install epel-release
+yum install ntfs-3g
+
+
+# mount exFAT
+rpm -Uvh http://li.nux.ro/download/nux/dextop/el6/x86_64/nux-dextop-release-0-2.el6.nux.noarch.rpm
+yum update
+yum install fuse-exfat exfat-utils
+
+
