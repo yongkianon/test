@@ -1,0 +1,93 @@
+
+
+
+export HIVE_HOME=/opt/hive
+export PATH=$HIVE_HOME/bin:$PATH
+
+
+vi $HIVE_HOME/conf/hive-site.xml
+  <property>
+    <name>javax.jdo.option.ConnectionURL</name>
+    <value>jdbc:derby:;databaseName=/home/hive/metastore_db;create=true</value>
+  </property>
+  <property>
+    <name>hive.metastore.warehouse.dir</name>
+    <value>/user/hive/warehouse</value>
+  </property>
+  <property>
+    <name>hive.metastore.uris</name>
+    <value/>
+    <description>Thrift URI for the remote metastore. Used by metastore client to connect to remote metastore.</description>
+  </property>
+  <property>
+    <name>javax.jdo.option.ConnectionDriverName</name>
+    <value>org.apache.derby.jdbc.EmbeddedDriver</value>
+    <description>Driver class name for a JDBC metastore</description>
+  </property>
+  <property>
+    <name>javax.jdo.PersistenceManagerFactoryClass</name>
+    <value>org.datanucleus.api.jdo.JDOPersistenceManagerFactory</value>
+    <description>class implementing the jdo persistence</description>
+  </property>
+
+
+
+
+
+$HIVE_HOME/bin/schematool -dbType derby -initSchema
+$HIVE_HOME/bin/hive
+
+
+CREATE TABLE IF NOT EXISTS emp (
+  eid    int
+, name   String
+, salary String
+, dest   String
+)
+COMMENT 'Employee details'
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '\t'
+LINES  TERMINATED BY '\n'
+STORED AS TEXTFILE;
+
+
+
+
+$HIVE_HOME/bin/hiveserver2 &
+$HIVE_HOME/bin/beeline -u jdbc:hive2://localhost:10000
+$HIVE_HOME/bin/hive
+
+
+
+
+
+## NO NEED in node05 /home/hive
+vi $HIVE_HOME/conf/jpox.properties
+javax.jdo.PersistenceManagerFactoryClass = org.jpox.PersistenceManagerFactoryImpl
+org.jpox.autoCreateSchema = false
+org.jpox.validateTables = false
+org.jpox.validateColumns = false
+org.jpox.validateConstraints = false
+org.jpox.storeManagerType = rdbms
+org.jpox.autoCreateSchema = true
+org.jpox.autoStartMechanismMode = checked
+org.jpox.transactionIsolation = read_committed
+javax.jdo.option.DetachAllOnCommit = true
+javax.jdo.option.NontransactionalRead = true
+javax.jdo.option.ConnectionDriverName = org.apache.derby.jdbc.ClientDriver
+javax.jdo.option.ConnectionURL = jdbc:derby://localhost:1527/metastore_db;create=true
+javax.jdo.option.ConnectionUserName = APP
+javax.jdo.option.ConnectionPassword = mine
+
+
+
+
+
+$HIVE_HOME/hcatalog/sbin/hcat_server.sh      start
+$HIVE_HOME/hcatalog/bin/hcat
+
+on port 50111
+$HIVE_HOME/hcatalog/sbin/webhcat_server.sh   start
+
+
+
