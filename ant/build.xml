@@ -1,0 +1,131 @@
+<project name="project" default="clean">
+
+
+  <property name="app.name" value="SenSon"/>
+  <property name="bak.dir" value="bak"/>
+  <property name="dist.dir" value="dist"/>
+  <property name="doc.dir" value="doc"/>
+  <property name="src.dir" value="src"/>
+  <property name="test.dir" value="test"/>
+  <property name="web.dir" value="web"/>
+  <property name="classes.dir" value="classes"/>
+  <property name="lib.dir" value="lib"/>
+  <property name="com.dir" value="compile"/>
+  <property name="deploy.dir" value="webapps"/>
+
+
+  <path id="compile.lib">
+    <fileset dir="${lib.dir}">
+      <include name="*.jar"/>
+    </fileset>
+    <fileset dir="${com.dir}">
+      <include name="*.jar"/>
+    </fileset>
+  </path>
+
+
+  <path id="runtime.lib">
+    <fileset dir="${lib.dir}">
+      <include name="*.jar"/>
+    </fileset>
+  </path>
+
+
+  <target name="clean">
+    <delete file="${dist.dir}/${app.name}.war"/>
+    <delete dir="${bak.dir}"/>
+    <delete dir="${doc.dir}"/>
+    <delete dir="${classes.dir}"/>
+    <delete>
+      <fileset dir="${src.dir}" includes="**/*.class"/>
+    </delete>
+  </target>
+
+
+  <target name="compile" depends="prepare">
+    <javac debug="on" srcdir="${src.dir}" destdir="${classes.dir}"
+           includeantruntime="false"
+           classpathref="compile.lib"/>
+    <copy todir="${classes.dir}">
+      <fileset dir="${src.dir}">
+        <exclude name="**/*.java"/>
+        <exclude name="**/*.bak"/>
+      </fileset>
+    </copy>
+  </target>
+
+
+  <target name="all" depends="compile">
+    <javac srcdir="${test.dir}"
+           destdir="${classes.dir}"
+           classpathref="compile.lib"/>
+    <copy todir="${classes.dir}">
+      <fileset dir="${test.dir}">
+        <exclude name="**/*.java"/>
+        <exclude name="**/*.bak"/>
+      </fileset>
+    </copy>
+  </target>
+
+
+  <target name="prepare" depends="clean">
+    <mkdir dir="${classes.dir}"/>
+  </target>
+
+
+  <target name="run" depends="compile">
+    <java fork="true" classname="event.EventManager" classpathref="runtime.lib">
+      <classpath path="${classes.dir}"/>
+      <arg value="arg1 arg2 ..."/>
+    </java>
+  </target>
+
+
+  <target name="src.DEV">
+    <echo>copy DEV resources...</echo>
+    <copy todir="${src.dir}" overwrite="true">
+      <fileset dir="${src.dir}.DEV">
+        <exclude name="**/*.bak"/>
+        <exclude name="**/CVS/**"/>
+      </fileset>
+    </copy>
+  </target>
+
+
+  <target name="DEV" depends="src.DEV, compile">
+    <echo>building DEV war...</echo>
+    <mkdir dir="${dist.dir}"/>
+    <jar destfile="${dist.dir}/dev.war"
+         basedir="${web.dir}"
+         excludes="**/doc/**, **/bak/**, **/*.bak/**, **/*.*~, **/dist/**
+                 , **/*.bak, **/*.old, **/*.dep2, **/compile/*.jar
+                 , **/.idea/**, **/*.local, **/src/**, **/sql/**
+                 , **/.cvs*, **/.*, **/static/*.pdf"/>
+  </target>
+
+
+  <target name="war" depends="compile">
+    <echo>building war...</echo>
+    <mkdir dir="${dist.dir}"/>
+    <jar destfile="${dist.dir}/${app.name}.war"
+         basedir="${web.dir}"
+         excludes="**/doc/**, **/bak/**, **/*.bak/**, **/*.*~, **/dist/**
+                 , **/*.bak, **/*.old, **/*.dep2, **/compile/*.jar
+                 , **/.idea/**, **/*.local, **/src/**, **/sql/**
+                 , **/.cvs*, **/.*, **/static/*.pdf"/>
+  </target>
+
+
+  <target name="deploy" depends="compile">
+    <copy todir="${deploy.dir}">
+      <fileset dir="${dist.dir}">
+        <include name="**/*.war"/>
+        <exclude name="**/*.bak"/>
+      </fileset>
+    </copy>
+  </target>
+
+
+</project>
+
+
