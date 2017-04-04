@@ -1,6 +1,7 @@
 package util;
 
 import java.text.DecimalFormat;
+import java.util.Date;
 
 public class TimeUtils {
 
@@ -30,7 +31,7 @@ public class TimeUtils {
   }
 
   public static void main__loop(String[] args) {
-    long start = 0, end = 0;
+    long start, end;
 
     long t1 = 1234L;
     long t2 = 22 * HOUR + 63 * MINUTE;
@@ -71,6 +72,10 @@ public class TimeUtils {
     long hour = diff / (1000 * 60 * 60);
     long day = (diff / (1000 * 60 * 60)) / 24;
     return formatString(day, hour, minute, second);
+  }
+
+  public static String getDuration(Date end, Date start) {
+    return getDuration(end.getTime(), start.getTime());
   }
 
   public static String getDuration(long end, long start) {
