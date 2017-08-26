@@ -46,9 +46,9 @@ chown -R hadoop:hadoop /app /data /etc/hadoop /etc/zookeeper
 
 vi /etc/security/limits.conf
 #Goto end of the file
-root - nofile 32768
+root - nofile 65536
 root - nproc  65536
- *   - nofile 32768
+ *   - nofile 65536
  *   - nproc  65536
 
 

@@ -1,0 +1,38 @@
+
+su - postgres
+/opt/pgsql/bin/pg_ctl init  -D /opt/pgsql/data
+/opt/pgsql/bin/pg_ctl start -D /opt/pgsql/data  -l  /opt/pgsql/logs/pgsql.log
+/opt/pgsql/bin/pg_ctl stop  -D /opt/pgsql/data
+/usr/pgsql-9.2/bin/pg_ctl start
+
+/opt/pgsql/bin/createdb   test
+/opt/pgsql/bin/createuser --pwprompt
+/opt/pgsql/bin/dropuser   root
+
+/opt/pgsql/bin/psql -d test
+\conninfo
+\d
+\dt
+\du
+\quit
+
+
+CREATE ROLE root PASSWORD 'md5a67386a6ab510ccb12a5509d18003816' SUPERUSER CREATEDB CREATEROLE INHERIT LOGIN;
+
+CREATE TABLE playground (
+    equip_id serial PRIMARY KEY,
+    type varchar (50) NOT NULL,
+    color varchar (25) NOT NULL,
+    location char(1) check (location in ('N', 'S', 'W', 'E')),
+    install_date date,
+    install_time time,
+    ts_add       timestamp
+);
+
+
+
+INSERT INTO playground (type, color, location, install_date, install_time, ts_add)
+    VALUES ('slide', 'blue', 'S', '2015-05-20', '15:00:00', '2015-05-20 15:00:00');
+
+
+

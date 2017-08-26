@@ -1,0 +1,12 @@
+
+
+/opt/mongodb/bin/mongod --dbpath /data/db
+
+
+/opt/mongodb/bin/mongo
+> use admin
+> db.shutdownServer({timeoutSecs: 60});
+
+
+
+
