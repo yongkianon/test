@@ -19,7 +19,10 @@ systemctl start  firewalld.service
 #If firewalld running
 firewall-cmd --state
 firewall-cmd --permanent --add-service=high-availability
+firewall-cmd --permanent --add-service=http  --zone=public
+firewall-cmd --permanent --add-service=https --zone=public
 firewall-cmd --reload
+firewall-cmd --list-services --zone=public
 
 yum install bind-utils  net-tools  keepalived
 yum install corosync pacemaker pcs fence-agents
