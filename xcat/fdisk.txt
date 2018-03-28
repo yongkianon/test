@@ -1,0 +1,4 @@
+
+fdisk    /dev/sde
+mkfs.xfs /dev/sde1
+

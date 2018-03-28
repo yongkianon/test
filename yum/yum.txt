@@ -1,6 +1,8 @@
 
 # mount ISO as repo
 vi /etc/yum.repos.d/cdrom.repo
+# rpm --import /mnt/cdrom/*GPG*
+# yum install yum-utils openssh-clients net-tools bind-utils ntp zip unzip
 [cdrom]
 name=cdrom
 baseurl=file:///mnt/cdrom
@@ -35,7 +37,7 @@ rpm -ivh *rpm
 yum update <package>
 
 #download RPMs without installing
-yum install yum-utils
+yum install yum-utils openssh-clients net-tools bind-utils ntp zip unzip
 yumdownloader --resolve <package>
 yum install   --downloadonly --downloaddir=.  <package>
 

@@ -1,0 +1,5 @@
+
+JAVA_HOME=/opt/jdk1.8.0
+
+PATH=$JAVA_HOME/bin:$PATH
+

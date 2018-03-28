@@ -227,7 +227,12 @@ iscsiadm --mode session --op show
 
 
 fdisk -l
-blkid /dev/sda1
+  blkid /dev/sda1
+lsblk
+
+fdisk    /dev/sde
+mkfs.xfs /dev/sde1
+
 
 
 
